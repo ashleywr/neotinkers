@@ -8,17 +8,19 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingEvent.LivingJumpEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerEffect;
 import slimeknights.tconstruct.shared.TinkerAttributes;
@@ -36,6 +38,9 @@ public class AntigravityEffect extends TinkerEffect {
     super(MobEffectCategory.HARMFUL, 0xff970d, true);
     this.addAttributeModifier(Attributes.GRAVITY, TConstruct.getResource("effect.antigravity"), -2, Operation.ADD_MULTIPLIED_TOTAL);
     NeoForge.EVENT_BUS.addListener(this::onLivingJump);
+    // lowest so we skip removals another mod cancels
+    NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onEffectRemoved);
+    NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onEffectExpired);
   }
 
   /** Holder for this effect, used for self-checks */
@@ -121,9 +126,22 @@ public class AntigravityEffect extends TinkerEffect {
     return true;
   }
 
-  // TODO(neoport): 1.21 removeAttributeModifiers(AttributeMap) no longer receives the entity, so the
-  // per-entity LAST_VELOCITY tracker can no longer be cleared on effect removal. Stale entries are
-  // harmless (re-populated via computeIfAbsent) but no longer pruned here.
+  // 1.21: removeAttributeModifiers no longer receives the entity, so clear the velocity tracker from the effect events
+
+  /** Clears the velocity tracker when the effect is removed */
+  private void onEffectRemoved(MobEffectEvent.Remove event) {
+    if (event.getEffect().value() == this) {
+      LAST_VELOCITY.remove(event.getEntity().getId());
+    }
+  }
+
+  /** Clears the velocity tracker when the effect runs out */
+  private void onEffectExpired(MobEffectEvent.Expired event) {
+    MobEffectInstance instance = event.getEffectInstance();
+    if (instance != null && instance.getEffect().value() == this) {
+      LAST_VELOCITY.remove(event.getEntity().getId());
+    }
+  }
 
   /** Handles making the player jump down instead of up */
   private void onLivingJump(LivingJumpEvent event) {
