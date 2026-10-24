@@ -20,6 +20,7 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -59,6 +60,7 @@ import slimeknights.tconstruct.library.tools.nbt.ToolDataComponents;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinitionLoader;
 import slimeknights.tconstruct.library.tools.layout.StationSlotLayoutLoader;
 import slimeknights.tconstruct.library.utils.Util;
+import slimeknights.tconstruct.plugin.craftingtweaks.CraftingTweaksPlugin;
 import slimeknights.tconstruct.shared.TinkerAttributes;
 import slimeknights.tconstruct.shared.TinkerClient;
 import slimeknights.tconstruct.shared.TinkerCommons;
@@ -137,6 +139,12 @@ public class TConstruct {
     // init client logic (lazy class-load: TinkerClient only loaded on the client branch)
     if (FMLEnvironment.dist == Dist.CLIENT) {
       TinkerClient.onConstruct();
+    }
+
+    // compat
+    ModList modList = ModList.get();
+    if (modList.isLoaded("craftingtweaks")) {
+      CraftingTweaksPlugin.onConstruct();
     }
   }
 

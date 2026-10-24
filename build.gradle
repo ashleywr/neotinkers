@@ -36,6 +36,11 @@ repositories {
         url = 'https://www.cursemaven.com'
         content { includeGroup 'curse.maven' }
     }
+    maven {
+        name = 'Modrinth (Crafting Tweaks, Balm, Jade)'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
 }
 
 neoForge {
@@ -104,7 +109,6 @@ sourceSets.main.resources {
 sourceSets.main.java {
     // jei: ported to the 1.21.1 JEI 19.x API and re-enabled (deps below).
     exclude 'slimeknights/tconstruct/plugin/jsonthings/**'
-    exclude 'slimeknights/tconstruct/plugin/craftingtweaks/**'
     exclude 'slimeknights/tconstruct/plugin/ImmersiveEngineeringPlugin.java'
     exclude 'slimeknights/tconstruct/plugin/DietPlugin.java'
     exclude 'slimeknights/tconstruct/plugin/DummmmmmyPlugin.java'
@@ -121,6 +125,12 @@ dependencies {
     // EMI (recipe viewer) - native plugin in slimeknights.tconstruct.plugin.emi
     compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
     runtimeOnly "dev.emi:emi-neoforge:${emi_version}"
+    // Crafting Tweaks - grid buttons on the crafting station
+    compileOnly "maven.modrinth:crafting-tweaks:${crafting_tweaks_version}"
+    runtimeOnly "maven.modrinth:crafting-tweaks:${crafting_tweaks_version}"
+    runtimeOnly "maven.modrinth:balm:${balm_version}"
+    // Jade has no plugin, it reads our capabilities; on the dev runtime to check tank and inventory tooltips
+    runtimeOnly "maven.modrinth:jade:${jade_version}"
     // JSON Things
     // compileOnly "dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}"
     // Immersive Engineering
