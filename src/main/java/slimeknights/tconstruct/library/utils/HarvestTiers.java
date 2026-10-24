@@ -30,7 +30,7 @@ public class HarvestTiers {
   /**
    * Gets a name for the given tier.
    * <p>
-   * TODO(neoport): TierSortingRegistry was removed in 1.21 along with its name registry. Vanilla tiers are mapped to a
+   * 1.21 removed TierSortingRegistry and its names, and modded tiers have no ID. Vanilla tiers are mapped to a
    * minecraft namespaced ID by their enum name; any other tier falls back to a generic ID so a translation key still resolves.
    */
   private static ResourceLocation tierId(Tier tier) {
@@ -43,7 +43,7 @@ public class HarvestTiers {
   /**
    * Gets the ID for the given tier, replacement for {@code TierSortingRegistry.getName}.
    * <p>
-   * TODO(neoport): TierSortingRegistry removed in 1.21; only vanilla tiers have a stable ID. Returns null for unknown tiers.
+   * Only vanilla tiers have a stable ID in 1.21. Returns null for other tiers.
    */
   @Nullable
   public static ResourceLocation getId(Tier tier) {
@@ -56,7 +56,7 @@ public class HarvestTiers {
   /**
    * Gets the tier for the given ID, replacement for {@code TierSortingRegistry.byName}.
    * <p>
-   * TODO(neoport): TierSortingRegistry removed in 1.21; only vanilla tiers are resolvable by ID. Returns null otherwise.
+   * Only vanilla tiers can be found by ID in 1.21. Returns null otherwise.
    */
   @Nullable
   public static Tier byName(ResourceLocation id) {
@@ -73,7 +73,7 @@ public class HarvestTiers {
   /**
    * Checks if the given tier can harvest the given block for drops, replacement for {@code TierSortingRegistry.isCorrectTierForDrops}.
    * <p>
-   * TODO(neoport): TierSortingRegistry removed in 1.21; cross mod tier ordering is gone. We use the vanilla incorrect-blocks tag.
+   * 1.21 tiers decide this with their incorrect blocks tag.
    */
   public static boolean isCorrectTierForDrops(Tier tier, BlockState state) {
     return !state.is(tier.getIncorrectBlocksForDrops());
@@ -86,8 +86,7 @@ public class HarvestTiers {
    * netherite. Note this is not the order the vanilla enum declares, as {@link Tiers} declares gold between diamond and
    * netherite despite gold having wood's harvest level, so {@code ordinal()} would sort gold above diamond.
    * <p>
-   * TODO(neoport): TierSortingRegistry removed in 1.21, true cross mod tier ordering is no longer available. Unknown
-   * tiers sort below all vanilla tiers.
+   * 1.21 has no cross mod tier ordering, so unknown tiers sort below all vanilla tiers.
    */
   private static int sortKey(Tier tier) {
     if (tier instanceof Tiers vanilla) {
@@ -139,7 +138,7 @@ public class HarvestTiers {
 
   /** Gets the smallest tier */
   public static Tier minTier() {
-    // TODO(neoport): TierSortingRegistry removed in 1.21, the registry sorted list is gone so we default to the lowest vanilla tier
+    // 1.21 has no sorted tier list, so use the lowest vanilla tier
     return Tiers.WOOD;
   }
 }

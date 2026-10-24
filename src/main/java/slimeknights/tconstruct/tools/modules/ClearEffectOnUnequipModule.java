@@ -38,7 +38,7 @@ public record ClearEffectOnUnequipModule(MobEffect effect, ModifierCondition<ITo
 
   @Override
   public void onUnequip(IToolStackView tool, ModifierEntry modifier, EquipmentChangeContext context) {
-    LivingEntity entity = context.getEntity(); // TODO(neoport): context.getEntity() cascade from EquipmentContext port
+    LivingEntity entity = context.getEntity();
     if (!entity.level().isClientSide && condition.matches(tool, modifier) && EquipmentChangeModifierHook.didUnequip(tool, context)) {
       entity.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect));
     }

@@ -159,10 +159,10 @@ public enum ZoomModule implements ModifierModule, GeneralInteractionModifierHook
 
   @Override
   public void onUnequip(IToolStackView tool, ModifierEntry modifier, EquipmentChangeContext context) {
-    if (context.getEntity().level().isClientSide) { // TODO(neoport): context.getEntity() cascade from EquipmentContext port
+    if (context.getEntity().level().isClientSide) {
       IToolStackView replacement = context.getReplacementTool();
       if (replacement == null || replacement.getModifierLevel(modifier.getModifier()) == 0) {
-        stopZoom(modifier, context.getEntity()); // TODO(neoport): context.getEntity() cascade from EquipmentContext port
+        stopZoom(modifier, context.getEntity());
       }
     }
   }

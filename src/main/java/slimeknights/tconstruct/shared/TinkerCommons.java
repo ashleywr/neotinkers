@@ -188,11 +188,7 @@ public final class TinkerCommons extends TinkerModule {
 
   @SubscribeEvent
   void registerRecipeSerializers(RegisterEvent event) {
-    // TODO(neoport): in 1.21 ingredient types (NoContainerIngredient, BlockTagIngredient) register on
-    // NeoForgeRegistries.Keys.INGREDIENT_TYPES and ICondition codecs (ConfigEnabledCondition,
-    // TagIntersection/Difference/NotEmpty) register on NeoForgeRegistries.Keys.CONDITION_CODECS via a
-    // DeferredRegister. CraftingHelper.register is gone; those owning classes now expose TYPE/CODEC and must
-    // be wired into a central DeferredRegister (cross-package decision, see NoContainerIngredient TODO).
+    // 1.21: ingredient types and condition codecs register in TinkerTools
     if (event.getRegistryKey() == Registries.TRIGGER_TYPE) {
       CriteriaTriggers.register(CONTAINER_OPENED_TRIGGER.getId().toString(), CONTAINER_OPENED_TRIGGER);
     }

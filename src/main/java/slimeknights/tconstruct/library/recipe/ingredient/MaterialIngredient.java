@@ -35,7 +35,7 @@ public class MaterialIngredient extends NestedIngredient {
     MATERIAL_FIELD,
     MaterialIngredient::new);
   /** Ingredient type instance */
-  // TODO(neoport): register this IngredientType on NeoForgeRegistries.Keys.INGREDIENT_TYPES under id tconstruct:material
+  // registered on NeoForgeRegistries.Keys.INGREDIENT_TYPES as tconstruct:material in TinkerTools
   public static final IngredientType<MaterialIngredient> TYPE = new LoadableIngredientSerializer<>(LOADABLE).type();
 
   private final IJsonPredicate<MaterialVariantId> material;

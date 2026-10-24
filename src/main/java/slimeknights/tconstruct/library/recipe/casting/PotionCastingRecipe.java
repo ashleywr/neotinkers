@@ -46,7 +46,7 @@ public class PotionCastingRecipe implements ICastingRecipe, IMultiRecipe<Display
     COOLING_TIME_FIELD,
     PotionCastingRecipe::new);
 
-  /** Tag key written by the molten potion fluid, see {@code PotionFluidType}. TODO(neoport): migrate potion fluid storage to the {@code PotionContents} data component. */
+  /** Tag key the 1.20 molten potion fluid used. Potion fluids now store the {@code PotionContents} data component, see {@code PotionFluidType} */
   protected static final String TAG_POTION = "Potion";
 
   @Getter

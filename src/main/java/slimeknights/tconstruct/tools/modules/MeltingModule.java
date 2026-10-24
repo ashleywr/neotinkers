@@ -215,7 +215,7 @@ public record MeltingModule(LevelingInt temperature, LevelingInt nuggetsPerMetal
         int damagePerOutput;
         if (recipe != null) {
           output = recipe.getOutput(target);
-          damagePerOutput = recipe.getDamage(); // TODO(neoport): EntityMeltingRecipe.getDamage() missing until EntityMeltingRecipe is ported
+          damagePerOutput = recipe.getDamage();
         } else {
           output = EntityMeltingModule.getDefaultFluid();
           damagePerOutput = 2;
@@ -246,7 +246,7 @@ public record MeltingModule(LevelingInt temperature, LevelingInt nuggetsPerMetal
   @Override
   public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
     if (context.isFullyCharged()) {
-      meltTarget(tool, modifier, context.getLivingTarget(), damageDealt); // TODO(neoport): ToolAttackContext.getLivingTarget() cascade from ToolAttackContext port
+      meltTarget(tool, modifier, context.getLivingTarget(), damageDealt);
     }
   }
 

@@ -34,7 +34,7 @@ public class MaterialValueIngredient implements ICustomIngredient {
     ValueField.INSTANCE,
     (material, value) -> new MaterialValueIngredient(material, value[0], value[1]));
   /** Ingredient type instance */
-  // TODO(neoport): register this IngredientType on NeoForgeRegistries.Keys.INGREDIENT_TYPES under id tconstruct:material_value
+  // registered on NeoForgeRegistries.Keys.INGREDIENT_TYPES as tconstruct:material_value in TinkerTools
   public static final IngredientType<MaterialValueIngredient> TYPE = new LoadableIngredientSerializer<>(LOADABLE).type();
 
   private final IJsonPredicate<MaterialVariantId> material;

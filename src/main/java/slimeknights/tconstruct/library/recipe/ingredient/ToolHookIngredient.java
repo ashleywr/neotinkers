@@ -32,7 +32,7 @@ public class ToolHookIngredient implements ICustomIngredient {
     ToolHooks.LOADER.requiredField("hook", i -> i.hook),
     ToolHookIngredient::new);
   /** Ingredient type instance */
-  // TODO(neoport): register this IngredientType on NeoForgeRegistries.Keys.INGREDIENT_TYPES under id tconstruct:tool_hook
+  // registered on NeoForgeRegistries.Keys.INGREDIENT_TYPES as tconstruct:tool_hook in TinkerTools
   public static final IngredientType<ToolHookIngredient> TYPE = new LoadableIngredientSerializer<>(LOADABLE).type();
 
   private final TagKey<Item> tag;

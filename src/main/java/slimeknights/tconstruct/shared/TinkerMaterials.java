@@ -74,8 +74,7 @@ public final class TinkerMaterials extends TinkerModule {
    */
   @SubscribeEvent
   void registerSerializers(RegisterEvent event) {
-    // TODO(neoport): MaterialIngredient / MaterialValueIngredient register on NeoForgeRegistries.Keys.INGREDIENT_TYPES
-    // via a DeferredRegister now (their classes expose TYPE); CraftingHelper.register is gone. Cross-package wiring.
+    // 1.21: ingredient types and condition codecs register in TinkerTools
     if (event.getRegistryKey() == Registries.RECIPE_SERIALIZER) {
       MaterialPredicate.LOADER.register(getResource("variant"), MaterialVariantPredicate.LOADER);
       MaterialPredicate.LOADER.register(getResource("id"), MaterialIdPredicate.LOADER);

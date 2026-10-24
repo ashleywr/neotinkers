@@ -146,7 +146,6 @@ public final class TinkerGadgets extends TinkerModule {
 
   /**
    * Constructor wiring the mod bus, used to register the data attachments owned by this module.
-   * TODO(neoport): TConstruct should construct gadgets via {@code new TinkerGadgets(modBus)} so the piggyback attachment register hooks the mod bus during construction (attachment DeferredRegisters cannot be registered from {@code commonSetup}).
    * @param modBus  Mod event bus
    */
   public TinkerGadgets(IEventBus modBus) {

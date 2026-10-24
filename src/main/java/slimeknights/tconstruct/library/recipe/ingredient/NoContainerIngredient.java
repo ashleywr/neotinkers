@@ -22,7 +22,7 @@ public class NoContainerIngredient extends NestedIngredient {
     IngredientLoadable.DISALLOW_EMPTY.requiredField("match", i -> i.nested),
     NoContainerIngredient::new);
   /** Ingredient type instance */
-  // TODO(neoport): register this IngredientType on NeoForgeRegistries.Keys.INGREDIENT_TYPES under id tconstruct:no_container
+  // registered on NeoForgeRegistries.Keys.INGREDIENT_TYPES as tconstruct:no_container in TinkerTools
   public static final IngredientType<NoContainerIngredient> TYPE = new LoadableIngredientSerializer<>(LOADABLE).type();
 
   protected NoContainerIngredient(Ingredient nested) {

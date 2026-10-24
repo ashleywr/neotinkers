@@ -93,7 +93,6 @@ public enum ThrowingModule implements ModifierModule, GeneralInteractionModifier
         float charge = GeneralInteractionModifierHook.getToolCharge(tool, chargeTime);
         float velocity = ConditionalStatModifierHook.getModifiedStat(tool, entity, ToolStats.VELOCITY);
         ThrownTool thrown = new ThrownTool(level, player, stack, charge, velocity, ConditionalStatModifierHook.getModifiedStat(tool, entity, ToolStats.WATER_INERTIA));
-        // TODO(neoport): setOriginalSlot unavailable until ThrownTool compiles (Lombok @Setter blocked by ThrownTool errors)
         if (player.getUsedItemHand() == InteractionHand.OFF_HAND) {
           thrown.setOriginalSlot(Inventory.SLOT_OFFHAND);
         } else {

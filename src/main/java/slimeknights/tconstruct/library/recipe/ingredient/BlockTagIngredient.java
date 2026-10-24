@@ -28,7 +28,7 @@ public class BlockTagIngredient implements ICustomIngredient {
     Loadables.BLOCK_TAG.requiredField("tag", i -> i.tag),
     BlockTagIngredient::new);
   /** Ingredient type instance */
-  // TODO(neoport): register this IngredientType on NeoForgeRegistries.Keys.INGREDIENT_TYPES under id tconstruct:block_tag
+  // registered on NeoForgeRegistries.Keys.INGREDIENT_TYPES as tconstruct:block_tag in TinkerTools
   public static final IngredientType<BlockTagIngredient> TYPE = new LoadableIngredientSerializer<>(LOADABLE).type();
 
   private final TagKey<Block> tag;

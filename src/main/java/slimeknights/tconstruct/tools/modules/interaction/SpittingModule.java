@@ -123,7 +123,6 @@ public record SpittingModule(LevelingInt shots) implements ModifierModule, Gener
 
             // finally, fire the projectile
             world.addFreshEntity(spit);
-            // TODO(neoport): Sounds.java not yet ported; getSound() unavailable until Sounds compiles
             world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), Sounds.SPIT.getSound(), SoundSource.PLAYERS, 1.0F, 1.0F / (world.getRandom().nextFloat() * 0.4F + 1.2F) + charge * 0.5F + (angle / 10f));
 
           }
@@ -145,7 +144,6 @@ public record SpittingModule(LevelingInt shots) implements ModifierModule, Gener
     if (!tool.isBroken() && source == InteractionSource.RIGHT_CLICK) {
       // launch if the fluid has effects, cannot simulate as we don't know the target yet
       FluidStack fluid = TANK_HELPER.getFluid(tool);
-      // TODO(neoport): modifier.getLevel() unavailable until ModifierEntry compiles (Lombok @Getter blocked by ModifierEntry errors)
       if (fluid.getAmount() >= modifier.getLevel() && FluidEffectManager.INSTANCE.find(fluid.getFluid()).hasEffects()) {
         GeneralInteractionModifierHook.startUsingWithDrawtime(tool, modifier.getId(), player, hand, 1.5f);
         return InteractionResult.SUCCESS;
@@ -171,7 +169,6 @@ public record SpittingModule(LevelingInt shots) implements ModifierModule, Gener
     if (!tool.isBroken() && keyModifier == TooltipKey.NORMAL) {
       // launch if the fluid has effects, cannot simulate as we don't know the target yet
       FluidStack fluid = TANK_HELPER.getFluid(tool);
-      // TODO(neoport): modifier.getLevel() unavailable until ModifierEntry compiles (Lombok @Getter blocked by ModifierEntry errors)
       if (fluid.getAmount() >= modifier.getLevel() && FluidEffectManager.INSTANCE.find(fluid.getFluid()).hasEffects()) {
         int time = HelmetChargingEffect.startUsingHelmet(tool, player, 1.5f);
         // mark the stack with the end time so we know how long to run particles

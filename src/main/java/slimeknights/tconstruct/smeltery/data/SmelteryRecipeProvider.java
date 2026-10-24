@@ -190,7 +190,8 @@ public class SmelteryRecipeProvider extends BaseRecipeProvider implements ISmelt
     BiConsumer<RecipeOutput,ResourceLocation> fastGrout = (c, id) ->
       SimpleCookingRecipeBuilder.blasting(Ingredient.of(TinkerSmeltery.grout), RecipeCategory.BUILDING_BLOCKS, TinkerSmeltery.searedBrick, 0.3f, 100)
                           .unlockedBy("has_item", has(TinkerSmeltery.grout)).save(c, id);
-    // TODO(neoport): the ceramics:kiln serializer redirect was removed in 1.21 (ConsumerWrapperBuilder type override gone). Two recipes with the same id are no longer allowed (datagen dedups by id before evaluating conditions), so emit only the vanilla blasting fallback, guarded to not-ceramics so it neither duplicates the id nor collides with Ceramics' own kiln recipe.
+    // 1.20 swapped this to a ceramics:kiln recipe when Ceramics was loaded. Ceramics has no 1.21 release, so only the blasting
+    // recipe is made, guarded so a future Ceramics port can add its own kiln recipe without a duplicate
     ResourceLocation kilnGrout = wrap(TinkerSmeltery.searedBrick, folder, "_kiln");
     fastGrout.accept(withCondition(consumer, not(modLoaded("ceramics"))), kilnGrout);
 
@@ -637,7 +638,7 @@ public class SmelteryRecipeProvider extends BaseRecipeProvider implements ISmelt
     BiConsumer<RecipeOutput,ResourceLocation> fastGrout = (c, id) ->
       SimpleCookingRecipeBuilder.blasting(Ingredient.of(TinkerSmeltery.netherGrout), RecipeCategory.BUILDING_BLOCKS, TinkerSmeltery.scorchedBrick, 0.3f, 100)
                                 .unlockedBy("has_item", has(TinkerSmeltery.netherGrout)).save(c, id);
-    // TODO(neoport): ceramics:kiln redirect removed in 1.21; emit only the vanilla blasting fallback (guarded to not-ceramics) to avoid a duplicate recipe id.
+    // blasting only, see seared bricks
     ResourceLocation kilnGrout = wrap(TinkerSmeltery.scorchedBrick, folder, "_kiln");
     fastGrout.accept(withCondition(consumer, not(modLoaded("ceramics"))), kilnGrout);
 

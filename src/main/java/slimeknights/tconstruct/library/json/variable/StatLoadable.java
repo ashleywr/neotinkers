@@ -166,8 +166,7 @@ public enum StatLoadable implements Loadable<Stat<?>> {
       name = ((Fluid) value).getFluidType().getDescription();
     } else if (registry == BuiltInRegistries.MOB_EFFECT) {
       name = ((MobEffect) value).getDisplayName();
-    // TODO(neoport): 1.21 moved enchantments to a datapack registry (no BuiltInRegistries.ENCHANTMENT); no static StatType
-    // targets it anymore, so the enchantment-specific branch is dropped and falls through to the generic key.
+    // 1.21 moved enchantments to a datapack registry, so no stat type targets them and the enchantment branch is gone
     } else {
       // if it's not one of the above types we do not know how to translate it, so use the raw key
       name = Component.literal(getKey(stat));

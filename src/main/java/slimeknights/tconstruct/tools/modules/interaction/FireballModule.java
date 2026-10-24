@@ -162,7 +162,6 @@ public record FireballModule(List<FireballType> options, DamageTypePair damageTy
         // add in type specific behavior
         projectile.setItem(fireball);
         FireballType type = getFireballType(fireball);
-        // TODO(neoport): setDamageMultiplier unavailable until CustomFireball compiles (Lombok @Setter blocked by CustomFireball errors)
         projectile.setDamageMultiplier(damageMultiplier * type.damageMultiplier);
         DamageTypePair damageTypes = type.damageType(this.damageType);
         projectile.setDamageType(damageTypes.ranged(), damageTypes.melee());

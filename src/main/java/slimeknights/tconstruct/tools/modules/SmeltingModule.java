@@ -92,7 +92,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
     InventoryModule.LOADER.directField(SmeltingModule::input),
     OutputKeyField.INSTANCE,
     // TODO 1.21: remove default value
-    Pattern.PARSER.defaultField("output_pattern", Patterns.RESULT, true, m -> m.output.pattern()), // TODO(neoport): InventoryModule.pattern() missing until InventoryModule is ported
+    Pattern.PARSER.defaultField("output_pattern", Patterns.RESULT, true, m -> m.output.pattern()),
     SmeltingModule::new);
 
   /** @apiNote use {@link #SmeltingModule(RecipeType, float, InventoryModule, ResourceLocation, Pattern)} */
@@ -100,7 +100,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
   public SmeltingModule {}
 
   public SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeType, float multiplier, InventoryModule inventory, @Nullable ResourceLocation outputKey, Pattern outputPattern) {
-    this(recipeType, multiplier, inventory, InventoryModule.builder().from(inventory).key(outputKey).pattern(outputPattern).filter(ItemPredicate.NONE).slots(inventory.slots())); // TODO(neoport): InventoryModule.builder().key()/slots() missing until InventoryModule is ported
+    this(recipeType, multiplier, inventory, InventoryModule.builder().from(inventory).key(outputKey).pattern(outputPattern).filter(ItemPredicate.NONE).slots(inventory.slots()));
   }
 
   public SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeType, float multiplier, InventoryModule inventory) {
@@ -154,7 +154,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
 
   /** Logic to actually cook the items */
   private void cookItems(IToolStackView tool, ModifierEntry modifier, Level level, @Nullable LivingEntity holder, float amount) {
-    if (!input.condition().matches(tool, modifier) || amount < 0) { // TODO(neoport): InventoryModule.condition() missing until InventoryModule is ported
+    if (!input.condition().matches(tool, modifier) || amount < 0) {
       return;
     }
     // first, fetch the inventory, ensure it exists
@@ -283,7 +283,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
   @Override
   public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
     // melee hits cook by melee damage
-    cookItems(tool, modifier, context.getAttacker(), damageDealt); // TODO(neoport): ToolAttackContext.getAttacker() missing until ToolAttackContext is ported
+    cookItems(tool, modifier, context.getAttacker(), damageDealt);
   }
 
   @Override
@@ -294,7 +294,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
   @Override
   public void finishHarvest(IToolStackView tool, ModifierEntry modifier, ToolHarvestContext context, int harvested) {
     if (tool.hasTag(TinkerTags.Items.HARVEST)) {
-      cookItems(tool, modifier, context.getLiving(), harvested); // TODO(neoport): ToolHarvestContext.getLiving() missing until ToolHarvestContext is ported
+      cookItems(tool, modifier, context.getLiving(), harvested);
     }
   }
 
@@ -316,7 +316,7 @@ public record SmeltingModule(RecipeType<? extends AbstractCookingRecipe> recipeT
   public void onAttacked(IToolStackView tool, ModifierEntry modifier, EquipmentContext context, EquipmentSlot slotType, DamageSource source, float amount, boolean isDirectDamage) {
     // damage taken cooks for armor/shields
     if (tool.hasTag(TinkerTags.Items.ARMOR)) {
-      cookItems(tool, modifier, context.getEntity(), amount); // TODO(neoport): EquipmentContext.getEntity() cascade from EquipmentContext port
+      cookItems(tool, modifier, context.getEntity(), amount);
     }
   }
 
