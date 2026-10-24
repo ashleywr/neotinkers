@@ -1,8 +1,10 @@
 package slimeknights.tconstruct.tools.modules.ranged.ammo;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -118,13 +120,25 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
     return Fluids.EMPTY;
   }
 
-  /** Gets the current fluid NBT */
-  @Nullable
-  private static CompoundTag getFluidTag(IModDataView data) {
+  /** Creates a stack of the stored fluid, restoring its components such as the potion */
+  private static FluidStack makeStack(IModDataView data, Fluid fluid, int amount) {
+    FluidStack stack = new FluidStack(fluid, amount);
     if (data.contains(KEY_FLUID_TAG, Tag.TAG_COMPOUND)) {
-      return data.getCompound(KEY_FLUID_TAG);
+      DataComponentPatch.CODEC.parse(ToolTankHelper.fluidLookup().createSerializationContext(NbtOps.INSTANCE), data.getCompound(KEY_FLUID_TAG))
+        .resultOrPartial(error -> TConstruct.LOG.error("Failed to read smashing fluid components: {}", error))
+        .ifPresent(stack::applyComponents);
     }
-    return null;
+    return stack;
+  }
+
+  /** Stores the components of the fluid, such as the potion */
+  private static void putComponents(ModDataNBT data, FluidStack stack) {
+    DataComponentPatch patch = stack.getComponentsPatch();
+    if (!patch.isEmpty()) {
+      DataComponentPatch.CODEC.encodeStart(ToolTankHelper.fluidLookup().createSerializationContext(NbtOps.INSTANCE), patch)
+        .resultOrPartial(error -> TConstruct.LOG.error("Failed to save smashing fluid components: {}", error))
+        .ifPresent(tag -> data.put(KEY_FLUID_TAG, tag));
+    }
   }
 
   /** Removes the fluid from the tool */
@@ -167,7 +181,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
       data.putString(KEY_FLUID, Loadables.FLUID.getString(resource.getFluid()));
       // we want to store a fixed size, but its possible part swapping changes our capacity, so keep track of our capacity at the time of storing
       data.putFloat(KEY_VALIDATE, getValidationAmount(tool, modifier));
-      // TODO(neoport): FluidStack no longer carries CompoundTag NBT (uses data components); fluid tag storage dropped
+      putComponents(data, resource);
     }
     return amount;
   }
@@ -184,7 +198,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
           clearFluid(data);
           // ensure we requested enough
         } else if (amount <= maxDrain) {
-          FluidStack result = new FluidStack(fluid, amount);
+          FluidStack result = makeStack(data, fluid, amount);
           if (action.execute()) {
             clearFluid(data);
           }
@@ -208,12 +222,14 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
           clearFluid(data);
           // ensure we requested enough
         } else if (amount <= resource.getAmount()) {
-          // TODO(neoport): dropped CompoundTag comparison; FluidStack now uses data components
-          FluidStack result = new FluidStack(fluid, amount);
-          if (action.execute()) {
-            clearFluid(data);
+          // ensure the components match
+          FluidStack result = makeStack(data, fluid, amount);
+          if (FluidStack.isSameFluidSameComponents(result, resource)) {
+            if (action.execute()) {
+              clearFluid(data);
+            }
+            return result;
           }
-          return result;
         }
       }
     }
@@ -230,7 +246,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
     if (fluid != Fluids.EMPTY) {
       int amount = getAmount(modifier, fluid);
       if (amount > 0) {
-        return new FluidStack(fluid, amount);
+        return makeStack(data, fluid, amount);
       } else {
         // invalid, nothing more to do
         clearFluid(data);
@@ -300,7 +316,9 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
         if (amount > 0) {
           persistentData.putString(KEY_FLUID, toolData.getString(KEY_FLUID));
           persistentData.putInt(KEY_AMOUNT, amount);
-          // TODO(neoport): fluid tag NBT no longer stored/forwarded; FluidStack uses data components
+          if (toolData.contains(KEY_FLUID_TAG, Tag.TAG_COMPOUND)) {
+            persistentData.put(KEY_FLUID_TAG, toolData.getCompound(KEY_FLUID_TAG));
+          }
         }
       }
     }
@@ -317,9 +335,9 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
         if (effects.hasEntityEffects()) {
           // apply the effect
           int drained = effects.applyToEntity(
-            new FluidStack(fluid, amount),
+            makeStack(persistentData, fluid, amount),
             modifier.getEffectiveLevel(),
-            FluidEffectContext.builder(projectile.level()).user(attacker).location(hit.getLocation()).target(hit.getEntity(), target), // TODO(neoport): .projectile(projectile) removed; FluidEffectContext.Builder.projectile() not available until FluidEffectContext compiles
+            FluidEffectContext.builder(projectile.level()).user(attacker).projectile(projectile).location(hit.getLocation()).target(hit.getEntity(), target),
             FluidAction.EXECUTE
           );
           // drain the fluid
@@ -354,9 +372,9 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
         if (effects.hasBlockEffects()) {
           // apply the effect
           int drained = effects.applyToBlock(
-            new FluidStack(fluid, amount),
+            makeStack(persistentData, fluid, amount),
             modifier.getEffectiveLevel(),
-            FluidEffectContext.builder(projectile.level()).user(attacker).location(hit.getLocation()).block(hit), // TODO(neoport): .projectile(projectile) removed; FluidEffectContext.Builder.projectile() not available until FluidEffectContext compiles
+            FluidEffectContext.builder(projectile.level()).user(attacker).projectile(projectile).location(hit.getLocation()).block(hit),
             FluidAction.EXECUTE
           );
           // drain the fluid
@@ -395,9 +413,9 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
           // apply the effect at the location of the projectile
           Vec3 position = projectile.position();
           int drained = effects.applyToBlock(
-            new FluidStack(fluid, amount),
+            makeStack(persistentData, fluid, amount),
             modifier.getEffectiveLevel(),
-            FluidEffectContext.builder(projectile.level()).user(projectile.getOwner()).location(position) // TODO(neoport): .projectile(projectile) removed; FluidEffectContext.Builder.projectile() not available until FluidEffectContext compiles
+            FluidEffectContext.builder(projectile.level()).user(projectile.getOwner()).projectile(projectile).location(position)
               .block(new BlockHitResult(position, projectile.getDirection(), projectile.blockPosition(), false)),
             FluidAction.EXECUTE
           );
@@ -433,7 +451,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
     if (fluid != Fluids.EMPTY) {
       // formats as <name> <level> (<fluid>)
       return Component.translatable(FORMAT, name,
-        new FluidStack(fluid, FluidValues.BOTTLE).getDisplayName()
+        makeStack(data, fluid, FluidValues.BOTTLE).getDisplayName()
       ).withStyle(name.getStyle());
     }
     return name;
@@ -447,7 +465,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
       int amount = getAmount(modifier, fluid);
       if (amount > 0) {
         // formats as <fluid>: <amount> mb
-        tooltip.add(modifier.getModifier().applyStyle(new FluidStack(fluid, amount).getDisplayName().copy()
+        tooltip.add(modifier.getModifier().applyStyle(makeStack(data, fluid, amount).getDisplayName().copy()
           .append(": ").append(Component.translatable(ToolTankHelper.MB_FORMAT, TranslationHelper.COMMA_FORMAT.format(amount)))));
       }
     }
@@ -457,7 +475,6 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
   /* Helper */
 
   /** Helper for working with models. Not designed to be used directly. */
-  // TODO(neoport): ToolTankHelper @RequiredArgsConstructor not generated until ToolTankHelper.java compiles; update once fixed
   public static ToolTankHelper TANK_HELPER = new ToolTankHelper(ToolTankHelper.CAPACITY_STAT, KEY_FLUID) {
     @Override
     public FluidStack getFluid(IToolStackView tool) {
@@ -466,7 +483,7 @@ public enum SmashingModule implements ModifierModule, FluidModifierHook, Project
       if (fluid != Fluids.EMPTY) {
         int amount = getAmount(fluid);
         if (amount > 0) {
-          return new FluidStack(fluid, amount);
+          return makeStack(data, fluid, amount);
         }
       }
       return FluidStack.EMPTY;

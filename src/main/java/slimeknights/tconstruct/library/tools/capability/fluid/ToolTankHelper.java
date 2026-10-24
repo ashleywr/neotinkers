@@ -34,7 +34,7 @@ public class ToolTankHelper {
   private static HolderLookup.Provider fluidLookup;
 
   /** Gets the registry lookup used to serialize tank fluids */
-  private static HolderLookup.Provider fluidLookup() {
+  public static HolderLookup.Provider fluidLookup() {
     if (fluidLookup == null) {
       fluidLookup = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }

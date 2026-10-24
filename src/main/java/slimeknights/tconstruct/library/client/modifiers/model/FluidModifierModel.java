@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -47,15 +48,14 @@ public record FluidModifierModel(Material small, @Nullable Material large, ToolT
   }
 
   /** Cache key for {@link #getCacheKey(IToolStackView, ModifierEntry)} */
-  private record CacheKey(Fluid fluid) {}
+  private record CacheKey(Fluid fluid, DataComponentPatch components) {}
 
   @Nullable
   @Override
   public Object getCacheKey(IToolStackView tool, ModifierEntry modifier) {
     FluidStack fluid = tankHelper().getFluid(tool);
     if (!fluid.isEmpty()) {
-      // 1.21: FluidStack is component-backed and no longer exposes a tag; key on the fluid only
-      return new CacheKey(fluid.getFluid());
+      return new CacheKey(fluid.getFluid(), fluid.getComponentsPatch());
     }
     return null;
   }
