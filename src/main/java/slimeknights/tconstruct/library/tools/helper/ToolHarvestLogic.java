@@ -132,18 +132,15 @@ public class ToolHarvestLogic {
     BlockPos pos = context.getPos();
     GameType type = player.gameMode.getGameModeForPlayer();
     BlockState state = context.getState();
-    // 1.21: BlockEvent.BreakEvent no longer carries the experience to drop (ForgeHooks.onBlockBreakEvent is gone), so we
-    // fire it only for its veto and recompute the experience from the block in both cases. useLastXP means the event
-    // already fired for this block (see ToolEvents.onBlockBreak), so we must not fire it a second time.
-    // TODO(neoport): experience boosting that used to run via BreakEvent#setExpToDrop (ModifierEvents#beforeBlockBreak,
-    // experienced modifier) does not apply on this path.
+    // 1.21: BlockEvent.BreakEvent no longer carries the experience to drop, so we fire it only for its veto. useLastXP means
+    // the event already fired for this block (see ToolEvents.onBlockBreak), so we must not fire it a second time.
+    // Experience now drops from playerDestroy through BlockDropsEvent, which is also where the experienced modifier boosts it.
     if (!useLastXP) {
       BlockEvent.BreakEvent breakEvent = CommonHooks.fireBlockBreak(world, type, player, pos, state);
       if (breakEvent.isCanceled()) {
         return false;
       }
     }
-    int exp = state.getExpDrop(world, pos, world.getBlockEntity(pos), player, stack);
     // checked after the break event, so we have to recheck
     if (player.blockActionRestricted(world, pos, type)) {
       return false;
@@ -173,11 +170,6 @@ public class ToolHarvestLogic {
       if (tool instanceof ToolStack toolStack) {
         toolStack.refreshFromStack();
       }
-    }
-
-    // drop XP
-    if (removed && exp > 0) {
-      block.popExperience(world, pos, exp);
     }
 
     // handle modifiers if not broken
