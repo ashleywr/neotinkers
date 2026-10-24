@@ -3,6 +3,10 @@
     {
       "type": "mantle:tag_filled",
       "tag": "c:storage_blocks/raw_pewter"
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/tin"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -10,7 +14,7 @@
     {
       "amount": 810,
       "rate": "metal",
-      "tag": "c:molten_iron"
+      "tag": "c:molten_tin"
     }
   ],
   "ingredient": {

@@ -4,6 +4,10 @@
       "type": "mantle:tag_combination_filled",
       "ignore": "tconstruct:non_singular_ore_rates",
       "match": "c:ores/zinc"
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/tin"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -11,7 +15,7 @@
     {
       "amount": 180,
       "rate": "metal",
-      "tag": "c:molten_copper"
+      "tag": "c:molten_tin"
     }
   ],
   "ingredient": {

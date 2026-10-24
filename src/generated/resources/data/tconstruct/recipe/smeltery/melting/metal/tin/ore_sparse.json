@@ -6,6 +6,10 @@
         "c:ores/tin",
         "c:ore_rates/sparse"
       ]
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/nickel"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -13,7 +17,7 @@
     {
       "amount": 90,
       "rate": "metal",
-      "tag": "c:molten_copper"
+      "tag": "c:molten_nickel"
     }
   ],
   "ingredient": {

@@ -4,6 +4,10 @@
       "type": "mantle:tag_combination_filled",
       "ignore": "tconstruct:non_singular_ore_rates",
       "match": "c:ores/silver"
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/lead"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -11,7 +15,7 @@
     {
       "amount": 180,
       "rate": "metal",
-      "tag": "c:molten_gold"
+      "tag": "c:molten_lead"
     }
   ],
   "ingredient": {

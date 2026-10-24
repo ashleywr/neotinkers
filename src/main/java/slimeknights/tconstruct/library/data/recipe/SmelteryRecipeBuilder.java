@@ -20,6 +20,7 @@ import net.neoforged.neoforge.common.crafting.DifferenceIngredient;
 import net.neoforged.neoforge.common.crafting.IntersectionIngredient;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
+import net.neoforged.neoforge.common.conditions.NotCondition;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import slimeknights.mantle.recipe.condition.TagCombinationCondition;
 import slimeknights.mantle.recipe.condition.TagFilledCondition;
@@ -38,6 +39,8 @@ import slimeknights.tconstruct.library.recipe.melting.MeltingRecipeBuilder;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -284,10 +287,7 @@ public class SmelteryRecipeBuilder {
     builder.save(wrapped, location(meltingFolder, output));
   }
 
-  /**
-   * Adds recipes to melt an ore item with byproducts.
-   * TODO(neoport): ConditionalRecipe ordered first-match -> withConditions per-branch; verify only one byproduct condition passes at runtime
-   */
+  /** Adds recipes to melt an ore item with byproducts */
   private void oreMelting(float scale, String tagPrefix, @Nullable TagKey<Item> size, float factor, String output, boolean forceOptional) {
     assert oreRate != null;
     assert baseUnit != 0;
@@ -321,24 +321,34 @@ public class SmelteryRecipeBuilder {
               .setOre(oreRate, oreByproducts[0].getOreRate())
               .save(wrapped, location);
     } else {
-      // multiple options, each byproduct branch saves the same location guarded by its own condition.
-      // ConditionalRecipe used ordered first-match; withConditions guards each branch independently, so the byproduct
-      // conditions (presence of an ingot tag) must be mutually exclusive at runtime for the prior behavior to hold.
-      // TODO(neoport): conditional ore byproducts used ConditionalRecipe's ordered first-match (one recipe id, several
-      // condition-guarded variants). 1.21 datagen dedups by id and cannot emit multiple variants under one id, so emit a
-      // single recipe: prefer an always-present byproduct, otherwise no byproduct (the ore still melts). The mod-compat
-      // conditional byproduct preferences are dropped until restored via unique ids + mutually-exclusive conditions.
-      IByproduct always = null;
+      // multiple options, use the first byproduct that is present. 1.21 has no ordered conditional recipe, so each option
+      // is its own recipe requiring its byproduct and the absence of every earlier option, meaning only one loads
+      List<ICondition> earlier = new ArrayList<>();
+      boolean alwaysPresent = false;
       for (IByproduct byproduct : oreByproducts) {
-        if (byproduct.isAlwaysPresent()) {
-          always = byproduct;
+        alwaysPresent = byproduct.isAlwaysPresent();
+        ConsumerWrapperBuilder branch = ConsumerWrapperBuilder.wrap();
+        for (ICondition condition : earlier) {
+          branch.addCondition(new NotCondition(condition));
+        }
+        ICondition present = tagCondition("ingots/" + byproduct.getName());
+        if (!alwaysPresent) {
+          branch.addCondition(present);
+        }
+        supplier.get().addByproduct(byproduct.getFluid(scale)).setOre(oreRate, byproduct.getOreRate())
+                .save(branch.build(wrapped), earlier.isEmpty() ? location : location.withSuffix("_" + byproduct.getName()));
+        if (alwaysPresent) {
           break;
         }
+        earlier.add(present);
       }
-      if (always != null) {
-        supplier.get().addByproduct(always.getFluid(scale)).setOre(oreRate, always.getOreRate()).save(wrapped, location);
-      } else {
-        supplier.get().save(wrapped, location);
+      // not always present? add a recipe with no byproducts as a final fallback
+      if (!alwaysPresent) {
+        ConsumerWrapperBuilder branch = ConsumerWrapperBuilder.wrap();
+        for (ICondition condition : earlier) {
+          branch.addCondition(new NotCondition(condition));
+        }
+        supplier.get().save(branch.build(wrapped), location.withSuffix("_no_byproduct"));
       }
     }
   }

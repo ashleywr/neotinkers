@@ -3,6 +3,10 @@
     {
       "type": "mantle:tag_filled",
       "tag": "c:geore_small_buds/zinc"
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/tin"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -10,7 +14,7 @@
     {
       "amount": 90,
       "rate": "metal",
-      "tag": "c:molten_copper"
+      "tag": "c:molten_tin"
     }
   ],
   "ingredient": {

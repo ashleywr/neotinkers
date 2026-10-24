@@ -6,6 +6,10 @@
         "c:ores/tungsten",
         "c:ore_rates/sparse"
       ]
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/platinum"
     }
   ],
   "type": "tconstruct:ore_melting",
@@ -13,7 +17,7 @@
     {
       "amount": 90,
       "rate": "metal",
-      "tag": "c:molten_gold"
+      "tag": "c:molten_platinum"
     }
   ],
   "ingredient": {

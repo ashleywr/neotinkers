@@ -3,9 +3,20 @@
     {
       "type": "mantle:tag_filled",
       "tag": "c:raw_materials/nicrosil"
+    },
+    {
+      "type": "mantle:tag_filled",
+      "tag": "c:ingots/chromium"
     }
   ],
   "type": "tconstruct:ore_melting",
+  "byproducts": [
+    {
+      "amount": 90,
+      "rate": "metal",
+      "tag": "c:molten_chromium"
+    }
+  ],
   "ingredient": {
     "tag": "c:raw_materials/nicrosil"
   },
