@@ -141,12 +141,26 @@ public class ToolStack implements IToolStackView {
     this.nbt = nbt;
   }
 
-  /** Writes the current NBT back to the backing item stack's data component, if a backing stack is present */
+  /**
+   * Writes the current NBT back to the backing item stack's data component, if a backing stack is present.
+   * Stores a copy, as copying an item stack shares component values; storing our working tag would let later edits
+   * through this view leak into every copy of the stack.
+   */
   private void syncToStack() {
     if (stack != null) {
-      ToolDataComponents.setTag(stack, nbt);
-      syncedTag = nbt;
+      CompoundTag copy = nbt.copy();
+      ToolDataComponents.setTag(stack, copy);
+      syncedTag = copy;
     }
+  }
+
+  /**
+   * Gets the working NBT, first picking up any edits another view of the same stack made since this view last synced.
+   * Before data components, all views of a stack shared one tag, so reads and writes always saw the latest data.
+   */
+  private CompoundTag tag() {
+    refreshFromStack();
+    return nbt;
   }
 
 
@@ -181,10 +195,10 @@ public class ToolStack implements IToolStackView {
       if (!copyNbt) {
         // only a wrongly made tool will have an empty definition. check preferred to a tag check as tags may not be loaded when this is first called
         if (definition != ToolDefinition.EMPTY) {
-          // store the empty compound onto the component so the tool stack and item stack stay in sync
+          // store an empty compound onto the component so the tool stack and item stack stay in sync
           // both damage and tag verification are done later, doing so now causes us to recursively call this method (though not infinite)
-          ToolDataComponents.setTag(stack, nbt);
-          stored = nbt;
+          stored = new CompoundTag();
+          ToolDataComponents.setTag(stack, stored);
           // no need to set the damage value, if the tool wanted it set the stack would have had a tag already
         } else {
           switch (Config.COMMON.logInvalidToolStack.get()) {
@@ -283,7 +297,7 @@ public class ToolStack implements IToolStackView {
     if (stored == null) {
       stored = new CompoundTag();
       ToolDataComponents.setTag(stack, stored);
-      this.nbt = stored;
+      this.nbt = new CompoundTag();
     } else {
       this.nbt = stored.copy();
     }
@@ -302,7 +316,7 @@ public class ToolStack implements IToolStackView {
    * Before data components, a tool stack shared its compound with the item stack, so edits made through a second view
    * of the same stack were visible here immediately. Component values are treated as immutable, so each view now holds
    * a private copy and flushes the whole copy back on mutation, which lets a long lived view silently undo those edits.
-   * Call this after handing the backing stack to code that may edit the tool and before mutating this view again.
+   * Every getter and setter calls this first, so explicit calls are only needed to drop cached data early.
    */
   public void refreshFromStack() {
     if (stack != null) {
@@ -373,8 +387,9 @@ public class ToolStack implements IToolStackView {
    * @return  Tool NBT without access to internal tags
    */
   public RestrictedCompoundTag getRestrictedNBT() {
+    refreshFromStack();
     if (restrictedNBT == null) {
-      restrictedNBT = new RestrictedCompoundTag(nbt, RESTRICTED_TAGS);
+      restrictedNBT = new RestrictedCompoundTag(tag(), RESTRICTED_TAGS);
     }
     return restrictedNBT;
   }
@@ -395,8 +410,9 @@ public class ToolStack implements IToolStackView {
    */
   @Override
   public boolean isBroken() {
+    refreshFromStack();
     if (broken == null) {
-      broken = nbt.getBoolean(TAG_BROKEN);
+      broken = tag().getBoolean(TAG_BROKEN);
     }
     return broken;
   }
@@ -414,7 +430,7 @@ public class ToolStack implements IToolStackView {
    */
   protected void setBrokenRaw(boolean broken) {
     this.broken = broken;
-    nbt.putBoolean(TAG_BROKEN, broken);
+    tag().putBoolean(TAG_BROKEN, broken);
     syncToStack();
   }
 
@@ -430,8 +446,9 @@ public class ToolStack implements IToolStackView {
    * @return  Damage ignoring broken state
    */
   protected int getDamageRaw() {
+    refreshFromStack();
     if (damage == -1) {
-      damage = nbt.getInt(TAG_DAMAGE);
+      damage = tag().getInt(TAG_DAMAGE);
     }
     return damage;
   }
@@ -471,14 +488,16 @@ public class ToolStack implements IToolStackView {
   @Override
   public void setDamage(int damage) {
     int durability = getStats().getInt(ToolStats.DURABILITY);
-    if (damage >= durability) {
+    boolean broken = damage >= durability;
+    if (broken) {
       damage = Math.max(0, durability);
-      setBrokenRaw(true);
-    } else {
-      setBrokenRaw(false);
     }
+    // set both before syncing, damage happens often enough that a second copy of the tag adds up
+    CompoundTag tag = tag();
+    this.broken = broken;
+    tag.putBoolean(TAG_BROKEN, broken);
     this.damage = damage;
-    nbt.putInt(TAG_DAMAGE, damage);
+    tag.putInt(TAG_DAMAGE, damage);
     syncToStack();
   }
 
@@ -490,8 +509,9 @@ public class ToolStack implements IToolStackView {
    */
   @Override
   public StatsNBT getStats() {
+    refreshFromStack();
     if (stats == null) {
-      stats = StatsNBT.readFromNBT(nbt.get(TAG_STATS));
+      stats = StatsNBT.readFromNBT(tag().get(TAG_STATS));
     }
     return stats;
   }
@@ -502,7 +522,7 @@ public class ToolStack implements IToolStackView {
    */
   protected void setStats(StatsNBT stats) {
     this.stats = stats;
-    nbt.put(TAG_STATS, stats.serializeToNBT());
+    tag().put(TAG_STATS, stats.serializeToNBT());
     syncToStack();
     // if we no longer have enough durability, decrease the damage and mark it broken
     int newMax = getStats().getInt(ToolStats.DURABILITY);
@@ -513,8 +533,9 @@ public class ToolStack implements IToolStackView {
 
   @Override
   public MultiplierNBT getMultipliers() {
+    refreshFromStack();
     if (multipliers == null) {
-      multipliers = MultiplierNBT.readFromNBT(nbt.get(TAG_MULTIPLIERS));
+      multipliers = MultiplierNBT.readFromNBT(tag().get(TAG_MULTIPLIERS));
     }
     return multipliers;
   }
@@ -526,10 +547,10 @@ public class ToolStack implements IToolStackView {
   protected void setMultipliers(MultiplierNBT multipliers) {
     if (multipliers.getContainedStats().isEmpty()) {
       this.multipliers = MultiplierNBT.EMPTY;
-      nbt.remove(TAG_MULTIPLIERS);
+      tag().remove(TAG_MULTIPLIERS);
     } else {
       this.multipliers = multipliers;
-      nbt.put(TAG_MULTIPLIERS, multipliers.serializeToNBT());
+      tag().put(TAG_MULTIPLIERS, multipliers.serializeToNBT());
     }
     syncToStack();
   }
@@ -539,11 +560,12 @@ public class ToolStack implements IToolStackView {
 
   @Override
   public MaterialNBT getMaterials() {
+    refreshFromStack();
     if (!getDefinition().hasMaterials()) {
       return MaterialNBT.EMPTY;
     }
     if (materials == null) {
-      materials = MaterialNBT.readFromNBT(nbt.get(TAG_MATERIALS));
+      materials = MaterialNBT.readFromNBT(tag().get(TAG_MATERIALS));
     }
     return materials;
   }
@@ -555,9 +577,9 @@ public class ToolStack implements IToolStackView {
   protected void setMaterialsRaw(MaterialNBT materials) {
     this.materials = materials;
     if (materials == MaterialNBT.EMPTY) {
-      this.nbt.remove(TAG_MATERIALS);
+      tag().remove(TAG_MATERIALS);
     } else {
-      this.nbt.put(TAG_MATERIALS, materials.serializeToNBT());
+      tag().put(TAG_MATERIALS, materials.serializeToNBT());
     }
     syncToStack();
   }
@@ -601,8 +623,9 @@ public class ToolStack implements IToolStackView {
    */
   @Override
   public ModifierNBT getUpgrades() {
+    refreshFromStack();
     if (upgrades == null) {
-      upgrades = ModifierNBT.readFromNBT(nbt.get(TAG_UPGRADES));
+      upgrades = ModifierNBT.readFromNBT(tag().get(TAG_UPGRADES));
     }
     return upgrades;
   }
@@ -613,7 +636,7 @@ public class ToolStack implements IToolStackView {
    */
   public void setUpgrades(ModifierNBT modifiers) {
     this.upgrades = modifiers;
-    nbt.put(TAG_UPGRADES, modifiers.serializeToNBT());
+    tag().put(TAG_UPGRADES, modifiers.serializeToNBT());
     syncToStack();
     rebuildStats();
   }
@@ -656,15 +679,16 @@ public class ToolStack implements IToolStackView {
     }
     ModifierNBT newModifiers = getUpgrades().withoutModifier(modifier, level);
     this.upgrades = newModifiers;
-    nbt.put(TAG_UPGRADES, newModifiers.serializeToNBT());
+    tag().put(TAG_UPGRADES, newModifiers.serializeToNBT());
     syncToStack();
     rebuildStats();
   }
 
   @Override
   public ModifierNBT getModifiers() {
+    refreshFromStack();
     if (modifiers == null) {
-      modifiers = ModifierNBT.readFromNBT(nbt.get(TAG_MODIFIERS));
+      modifiers = ModifierNBT.readFromNBT(tag().get(TAG_MODIFIERS));
     }
     return modifiers;
   }
@@ -675,7 +699,7 @@ public class ToolStack implements IToolStackView {
    */
   protected void setModifiers(ModifierNBT modifiers) {
     this.modifiers = modifiers;
-    nbt.put(TAG_MODIFIERS, this.modifiers.serializeToNBT());
+    tag().put(TAG_MODIFIERS, this.modifiers.serializeToNBT());
     syncToStack();
   }
 
@@ -684,15 +708,16 @@ public class ToolStack implements IToolStackView {
 
   @Override
   public ToolDataNBT getPersistentData() {
+    refreshFromStack();
     if (persistentModData == null) {
       // parse if the tag already exists
-      if (nbt.contains(TAG_PERSISTENT_MOD_DATA, Tag.TAG_COMPOUND)) {
+      if (tag().contains(TAG_PERSISTENT_MOD_DATA, Tag.TAG_COMPOUND)) {
         // the returned compound is a live child of nbt, so mutations land on nbt; the dirty callback flushes to the component
-        persistentModData = ToolDataNBT.readFromNBT(nbt.getCompound(TAG_PERSISTENT_MOD_DATA), this::syncToStack);
+        persistentModData = ToolDataNBT.readFromNBT(tag().getCompound(TAG_PERSISTENT_MOD_DATA), this::syncToStack);
       } else {
         // if no tag exists, create it
         CompoundTag tag = new CompoundTag();
-        nbt.put(TAG_PERSISTENT_MOD_DATA, tag);
+        tag().put(TAG_PERSISTENT_MOD_DATA, tag);
         persistentModData = ToolDataNBT.readFromNBT(tag, this::syncToStack);
       }
     }
@@ -701,10 +726,11 @@ public class ToolStack implements IToolStackView {
 
   @Override
   public IModDataView getVolatileData() {
+    refreshFromStack();
     if (volatileModData == null) {
       // parse if the tag already exists
-      if (nbt.contains(TAG_VOLATILE_MOD_DATA, Tag.TAG_COMPOUND)) {
-        volatileModData = ToolDataNBT.readFromNBT(nbt.getCompound(TAG_VOLATILE_MOD_DATA));
+      if (tag().contains(TAG_VOLATILE_MOD_DATA, Tag.TAG_COMPOUND)) {
+        volatileModData = ToolDataNBT.readFromNBT(tag().getCompound(TAG_VOLATILE_MOD_DATA));
       } else {
         // if no tag exists, return empty
         volatileModData = IModDataView.EMPTY;
@@ -721,10 +747,10 @@ public class ToolStack implements IToolStackView {
     CompoundTag data = modData.getData();
     if (data.isEmpty()) {
       volatileModData = IModDataView.EMPTY;
-      nbt.remove(TAG_VOLATILE_MOD_DATA);
+      tag().remove(TAG_VOLATILE_MOD_DATA);
     } else {
       volatileModData = modData;
-      nbt.put(TAG_VOLATILE_MOD_DATA, data);
+      tag().put(TAG_VOLATILE_MOD_DATA, data);
     }
     syncToStack();
   }
@@ -764,9 +790,9 @@ public class ToolStack implements IToolStackView {
     if (definition.isDataLoaded()) {
       // check if missing materials; either means we have none or too few
       MissingMaterialsToolHook missingMaterials = definition.getHook(ToolHooks.MISSING_MATERIALS);
-      boolean needsMaterials = definition.hasMaterials() && (!nbt.contains(TAG_MATERIALS, Tag.TAG_LIST) || missingMaterials.needsMaterials(definition, nbt.getList(TAG_MATERIALS, Tag.TAG_STRING).size()));
+      boolean needsMaterials = definition.hasMaterials() && (!tag().contains(TAG_MATERIALS, Tag.TAG_LIST) || missingMaterials.needsMaterials(definition, tag().getList(TAG_MATERIALS, Tag.TAG_STRING).size()));
       // build data if we either lack data (signified by no stats) or we lack materials but expect them
-      if (needsMaterials || !isInitialized(nbt)) {
+      if (needsMaterials || !isInitialized(tag())) {
         // randomize materials if missing
         if (needsMaterials) {
           setMaterialsRaw(missingMaterials.fillMaterials(definition, getMaterials(), RandomSource.create()));
