@@ -35,6 +35,7 @@ import slimeknights.tconstruct.common.multiblock.IMasterLogic;
 import slimeknights.tconstruct.common.multiblock.IServantLogic;
 import slimeknights.tconstruct.common.network.TinkerNetwork;
 import slimeknights.tconstruct.library.client.model.ModelProperties;
+import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.smeltery.block.controller.ControllerBlock;
 import slimeknights.tconstruct.smeltery.block.controller.SmelteryControllerBlock;
 import slimeknights.tconstruct.smeltery.block.entity.module.EntityMeltingModule;
@@ -626,10 +627,9 @@ public abstract class HeatingStructureBlockEntity extends NameableBlockEntity im
       }
     }
     // only exists to be sent server to client in update packets
-    // readBlockPos now takes the key directly and returns an Optional
-    BlockPos error = NbtUtils.readBlockPos(nbt, TAG_ERROR_POS).orElse(null);
+    BlockPos error = TagUtil.readOptionalPos(nbt, TAG_ERROR_POS, this.worldPosition);
     if (error != null) {
-      this.errorPos = error.offset(this.worldPosition);
+      this.errorPos = error;
     }
     fuelModule.readFromTag(nbt);
     if (nbt.contains(TAG_TEXTURE, Tag.TAG_STRING)) {

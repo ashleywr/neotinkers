@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 
@@ -23,9 +24,25 @@ public final class TagUtil {
    */
   @Nullable
   public static BlockPos readOptionalPos(CompoundTag parent, String key, BlockPos offset) {
-    if (parent.contains(key, Tag.TAG_COMPOUND)) {
-      // readBlockPos now takes the key directly and returns an Optional, so read from the parent and offset if present
-      return NbtUtils.readBlockPos(parent, key).map(pos -> pos.offset(offset)).orElse(null);
+    BlockPos pos = readPos(parent.get(key));
+    return pos == null ? null : pos.offset(offset);
+  }
+
+  /**
+   * Reads a block position from a tag written by {@link NbtUtils#writeBlockPos(BlockPos)}.
+   * 1.21 writes positions as an int array, while 1.20 wrote a compound with X, Y, and Z, so both are accepted to keep worlds migrated from 1.20 intact.
+   * @param tag  Tag to read
+   * @return  Block position, or null if invalid or missing
+   */
+  @Nullable
+  public static BlockPos readPos(@Nullable Tag tag) {
+    if (tag instanceof IntArrayTag array) {
+      int[] coords = array.getAsIntArray();
+      if (coords.length == 3) {
+        return new BlockPos(coords[0], coords[1], coords[2]);
+      }
+    } else if (tag instanceof CompoundTag compound && compound.contains("X", Tag.TAG_ANY_NUMERIC) && compound.contains("Y", Tag.TAG_ANY_NUMERIC) && compound.contains("Z", Tag.TAG_ANY_NUMERIC)) {
+      return new BlockPos(compound.getInt("X"), compound.getInt("Y"), compound.getInt("Z"));
     }
     return null;
   }

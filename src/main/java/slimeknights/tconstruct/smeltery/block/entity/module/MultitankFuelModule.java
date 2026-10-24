@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
+import slimeknights.tconstruct.library.utils.TagUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -171,10 +172,9 @@ public class MultitankFuelModule extends FuelModule implements IFluidHandler {
   @Override
   public void readFromTag(CompoundTag nbt) {
     super.readFromTag(nbt);
-    // readBlockPos now takes the key directly and returns an Optional, reading the int array written by writeBlockPos
-    BlockPos pos = NbtUtils.readBlockPos(nbt, TAG_LAST_FUEL).orElse(null);
+    BlockPos pos = TagUtil.readOptionalPos(nbt, TAG_LAST_FUEL, parent.getBlockPos());
     if (pos != null) {
-      lastPos = pos.offset(parent.getBlockPos());
+      lastPos = pos;
     }
   }
 
