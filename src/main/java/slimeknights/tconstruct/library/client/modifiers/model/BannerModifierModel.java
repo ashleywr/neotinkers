@@ -75,18 +75,17 @@ public record BannerModifierModel(@Nullable ResourceLocation smallPrefix, @Nulla
       if (modData.contains(key, CompoundTag.TAG_LIST)) {
         ListTag list = modData.getList(key, ListTag.TAG_COMPOUND);
         List<BakedQuad> quads = new ArrayList<>(list.size());
-        // 1.21: banner patterns are a data-driven registry. BannerModule stores each pattern as its
-        // registry-key path (see BannerModifierRecipe#bannerPatternsToListTag and BannerModule#copyPatterns),
-        // so resolve that path against the banner pattern registry to find the pattern's texture asset id.
+        // 1.21: banner patterns are a data-driven registry. BannerModule stores each pattern as its registry ID,
+        // so resolve that against the banner pattern registry to find the pattern's texture asset id.
         Level level = Minecraft.getInstance().level;
         Registry<BannerPattern> registry = level != null ? level.registryAccess().registryOrThrow(Registries.BANNER_PATTERN) : null;
         // iterate all patterns
         if (registry != null) {
           for (int i = 0; i < list.size(); i++) {
-            // map the stored registry-key path back to the pattern, then use its texture asset id
+            // map the stored registry ID back to the pattern, then use its texture asset id
             CompoundTag tag = list.getCompound(i);
             int color = tag.getInt(BannerModule.KEY_COLOR);
-            BannerPattern pattern = registry.get(ResourceLocation.withDefaultNamespace(tag.getString(BannerModule.KEY_PATTERN)));
+            BannerPattern pattern = BannerModule.getPattern(registry, tag);
             if (pattern != null) {
               ResourceLocation patternLocation = pattern.assetId();
               TextureAtlasSprite sprite = spriteGetter.apply(ModifierModel.blockAtlas(prefix.withSuffix(MaterialRenderInfo.getSuffix(patternLocation))));

@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSourceType;
 import net.minecraft.client.renderer.texture.atlas.sources.LazyLoadedImage;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -27,7 +27,6 @@ import slimeknights.tconstruct.library.client.materials.MaterialRenderInfo;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 /** Sprite source creating modifier textures for banners using shield banner textures */
 public record ShieldBannerModifierSpriteSource(int cropX, int cropY, int cropWidth, int cropHeight, ResourceLocation destinationPrefix, int offsetX, int offsetY, int outSize) implements SpriteSource {
@@ -52,6 +51,8 @@ public record ShieldBannerModifierSpriteSource(int cropX, int cropY, int cropWid
   });
   /** Registered type set on init */
   private static SpriteSourceType TYPE = null;
+  /** Converts between shield pattern textures and banner pattern asset IDs, matching {@link Sheets#getShieldMaterial} */
+  private static final FileToIdConverter SHIELD_PATTERNS = new FileToIdConverter("textures/entity/shield", ".png");
 
   /**
    * Registers this sprite source against the NeoForge sprite source type registry.
@@ -68,8 +69,7 @@ public record ShieldBannerModifierSpriteSource(int cropX, int cropY, int cropWid
 
   /**
    * Legacy no-arg registration entry point. In 1.21 sprite source types must be registered through
-   * {@link RegisterSpriteSourceTypesEvent}; returns the registered type if present.
-   * TODO(neoport): wire ToolClientEvents to subscribe RegisterSpriteSourceTypesEvent and call register(event).
+   * {@link RegisterSpriteSourceTypesEvent}, see ToolClientEvents; returns the registered type if present.
    */
   @Internal
   public static SpriteSourceType register() {
@@ -78,17 +78,13 @@ public record ShieldBannerModifierSpriteSource(int cropX, int cropY, int cropWid
 
   @Override
   public void run(ResourceManager manager, Output output) {
-    // TODO 1.21: will have to copy textures over using a folder search since these are datapack controlled
-    for (Entry<ResourceLocation, Material> entry : Sheets.SHIELD_MATERIALS.entrySet()) {
-      ResourceLocation input = TEXTURE_ID_CONVERTER.idToFile(entry.getValue().texture());
-      Optional<Resource> resource = manager.getResource(input);
-      if (resource.isEmpty()) {
-        TConstruct.LOG.warn("Unable to find shield texture {} to create modifier sprite", input);
-      } else {
-        LazyLoadedImage image = new LazyLoadedImage(input, resource.get(), 1);
-        ResourceLocation destination = destinationPrefix.withSuffix(MaterialRenderInfo.getSuffix(entry.getKey()));
-        output.add(destination, new BannerModifierSpriteSupplier(image, input, destination));
-      }
+    // 1.21: banner patterns are datapack controlled, so the client cannot list them while stitching. Instead, search the
+    // shield pattern folder, which Sheets#getShieldMaterial maps each pattern asset ID into.
+    for (Entry<ResourceLocation, Resource> entry : SHIELD_PATTERNS.listMatchingResources(manager).entrySet()) {
+      ResourceLocation input = entry.getKey();
+      LazyLoadedImage image = new LazyLoadedImage(input, entry.getValue(), 1);
+      ResourceLocation destination = destinationPrefix.withSuffix(MaterialRenderInfo.getSuffix(SHIELD_PATTERNS.fileToId(input)));
+      output.add(destination, new BannerModifierSpriteSupplier(image, input, destination));
     }
   }
 

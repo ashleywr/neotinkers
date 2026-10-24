@@ -1,7 +1,9 @@
 package slimeknights.tconstruct.tools.modules.cosmetic;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -9,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatterns;
 import slimeknights.mantle.client.TooltipKey;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
@@ -40,7 +43,7 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
   public static final String KEY_DYE = "dye";
   /** Key for a pattern color, as a 24 bit integer */
   public static final String KEY_COLOR = "color";
-  /** Key for a pattern identifier; stored as old 1.20 hash string, TODO(neoport): migrate to ResourceLocation path */
+  /** Key for a pattern registry ID. Earlier port versions stored only the path, which parses to the same vanilla ID */
   public static final String KEY_PATTERN = "pattern";
   /** Tooltip key saying hold shift for patterns */
   private static final Component HOLD_SHIFT = TConstruct.makeTranslation("modifier", "banner.hold_shift").withStyle(ChatFormatting.GRAY);
@@ -71,16 +74,28 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
     if (tooltipFlag == TinkerTooltipFlags.TINKER_STATION) {
       if (tooltipKey == TooltipKey.SHIFT) {
         ListTag patterns = tool.getPersistentData().getList(patternKey(modifier.getId()), ListTag.TAG_COMPOUND);
-        for (int i = 0; i < patterns.size(); i++) {
-          // TODO(neoport): BannerPattern.byHash() removed in 1.21.1; BannerPattern is now a data-driven registry.
-          // KEY_PATTERN stores old 1.20 hash strings. Need to migrate storage to ResourceLocation keys
-          // and look up via RegistryAccess. Until then tooltip pattern lines are suppressed.
-          @SuppressWarnings("unused") CompoundTag tag = patterns.getCompound(i);
+        // 1.21: patterns are a datapack registry, so we need the player's level to name them
+        Registry<BannerPattern> registry = player != null ? player.level().registryAccess().registry(Registries.BANNER_PATTERN).orElse(null) : null;
+        if (registry != null) {
+          for (int i = 0; i < patterns.size(); i++) {
+            CompoundTag tag = patterns.getCompound(i);
+            BannerPattern pattern = getPattern(registry, tag);
+            if (pattern != null) {
+              tooltip.add(Component.translatable(pattern.translationKey() + '.' + DyeColor.byId(tag.getInt(KEY_DYE)).getName()).withStyle(ChatFormatting.GRAY));
+            }
+          }
         }
       } else {
         tooltip.add(HOLD_SHIFT);
       }
     }
+  }
+
+  /** Gets the pattern stored in the given tag */
+  @Nullable
+  public static BannerPattern getPattern(Registry<BannerPattern> registry, CompoundTag tag) {
+    ResourceLocation id = ResourceLocation.tryParse(tag.getString(KEY_PATTERN));
+    return id != null ? registry.get(id) : null;
   }
 
   /** Gets the key for the cache used in the model */
@@ -99,12 +114,9 @@ public enum BannerModule implements ModifierModule, DisplayNameModifierHook, Too
     ListTag patterns = new ListTag();
 
     // add in the base pattern, it only exists on shields and we copy from banners
-    // TODO(neoport): BuiltInRegistries.BANNER_PATTERN removed; BannerPattern is now data-driven.
-    // BannerPatterns.BASE is ResourceKey<BannerPattern>; getHashname() gone.
-    // Store the base pattern key as its ResourceLocation path ("base") until NBT format migrated to RL keys.
     {
       CompoundTag basePattern = new CompoundTag();
-      basePattern.putString(KEY_PATTERN, BannerPatterns.BASE.location().getPath());
+      basePattern.putString(KEY_PATTERN, BannerPatterns.BASE.location().toString());
       basePattern.putInt(KEY_DYE, dye.getId());
       basePattern.putInt(KEY_COLOR, baseColor);
       patterns.add(basePattern);

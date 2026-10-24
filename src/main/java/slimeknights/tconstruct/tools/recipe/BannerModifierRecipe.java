@@ -121,8 +121,8 @@ public class BannerModifierRecipe implements ITinkerStationRecipe, IMultiRecipe<
     if (layers != null) {
       for (BannerPatternLayers.Layer layer : layers.layers()) {
         CompoundTag tag = new CompoundTag();
-        // store the pattern as its registry path, matching the convention used for the base pattern in BannerModule
-        tag.putString("Pattern", layer.pattern().unwrapKey().map(key -> key.location().getPath()).orElse(""));
+        // store the pattern as its registry ID, matching the base pattern in BannerModule
+        tag.putString("Pattern", layer.pattern().unwrapKey().map(key -> key.location().toString()).orElse(""));
         tag.putInt("Color", layer.color().getId());
         patterns.add(tag);
       }
