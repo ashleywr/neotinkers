@@ -25,8 +25,7 @@ public class BottleBrewingRecipe implements IBrewingRecipe {
   /** @deprecated container-mix lookup is no longer available in 1.21; pass the ingredient explicitly instead */
   @Deprecated
   public BottleBrewingRecipe(Ingredient input, Item from, Item to, ItemStack output) {
-    // TODO(neoport): PotionBrewing.CONTAINER_MIXES is package-private in 1.21, so the from/to container-mix ingredient
-    //  lookup cannot be performed. This constructor is currently unused; callers should use the explicit-ingredient form.
+    // 1.21 hides PotionBrewing's container mixes, so the ingredient cannot be found from the items
     this(input, Ingredient.EMPTY, output);
   }
 

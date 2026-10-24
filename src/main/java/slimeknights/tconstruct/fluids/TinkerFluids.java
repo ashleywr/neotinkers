@@ -399,6 +399,10 @@ public final class TinkerFluids extends TinkerModule {
       builder.addRecipe(Ingredient.of(Items.GLASS_BOTTLE), Ingredient.of(TinkerWorld.congealedSlime.get(slime)), new ItemStack(TinkerFluids.slimeBottle.get(slime)));
     }
     builder.addRecipe(Ingredient.of(Items.GLASS_BOTTLE), Ingredient.of(Blocks.MAGMA_BLOCK), new ItemStack(TinkerFluids.magmaBottle));
+    // brew bottles into each other, bit weird but feels better than shapeless
+    // 1.21 hides the potion container mixes, so use the vanilla splash and lingering ingredients directly
+    builder.addRecipe(Ingredient.of(Items.GLASS_BOTTLE), Ingredient.of(Items.GUNPOWDER), new ItemStack(splashBottle));
+    builder.addRecipe(Ingredient.of(MantleTags.Items.SPLASH_BOTTLE), Ingredient.of(Items.DRAGON_BREATH), new ItemStack(lingeringBottle));
   }
 
   /** Adds all relevant items to the creative tab, called by smeltery */
