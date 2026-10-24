@@ -69,9 +69,8 @@ public class Config {
         .define("shouldSpawnWithTinkersBook", true);
 
       ImmutableList.Builder<ConfigurableAction> actions = ImmutableList.builder();
-      // TODO(neoport): enchantment slots are data-driven in 1.21 (Enchantments.X is a ResourceKey<Enchantment>, slots come from JSON
-      //  and are immutable at runtime). The former runtime mutation of fire/blast protection slots is no longer possible; the option
-      //  is kept for config compatibility but extending the slots must now be done via a datapack override.
+      // 1.21: enchantment slots come from data and cannot be changed at runtime. The fire, scorch and blast protection modifiers
+      // now give shields the burn time and explosion knockback directly, so these options do nothing and remain so configs still load.
       actions.add(new ConfigurableAction(builder, "extendFireProtectionSlots", true,
                                          "If true, extends the applicable slots for the fire protection enchantment to work better with shields. Will not impact gameplay with the vanilla enchantment.\nIf false, fire protection on a shield will not reduce fire tick time.",
                                          () -> {}));

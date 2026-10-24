@@ -7,6 +7,16 @@
       "name": "minecraft:fire_protection"
     },
     {
+      "type": "tconstruct:attribute",
+      "attribute": "minecraft:generic.burning_time",
+      "each_level": -0.15,
+      "operation": "add_multiplied_base",
+      "slots": [
+        "mainhand",
+        "offhand"
+      ]
+    },
+    {
       "type": "tconstruct:protection",
       "damage_source": {
         "type": "mantle:and",

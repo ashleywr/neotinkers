@@ -738,9 +738,13 @@ public class ModifierProvider extends AbstractModifierProvider implements ICondi
       .addModule(ProtectionModule.builder().sources(DamageSourcePredicate.CAN_PROTECT, DamageSourcePredicate.tag(TinkerTags.DamageTypes.PROJECTILE_PROTECTION)).eachLevel(2f));
     buildModifier(ModifierIds.fireProtection)
       .addModule(EnchantmentModule.builder(enchantment(Enchantments.FIRE_PROTECTION)).protection())
+      // the enchantment only applies its burn time to armor slots, so shields need it as an attribute
+      .addModule(AttributeModule.builder(Attributes.BURNING_TIME.value(), Operation.ADD_MULTIPLIED_BASE).slots(EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND).eachLevel(-0.15f))
       .addModule(ProtectionModule.builder().sources(DamageSourcePredicate.CAN_PROTECT, DamageSourcePredicate.tag(TinkerTags.DamageTypes.FIRE_PROTECTION)).eachLevel(2.5f));
     buildModifier(ModifierIds.blastProtection)
       .addModule(EnchantmentModule.builder(enchantment(Enchantments.BLAST_PROTECTION)).protection())
+      // the enchantment only applies its knockback resistance to armor slots, so shields need it as an attribute
+      .addModule(AttributeModule.builder(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE.value(), Operation.ADD_VALUE).slots(EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND).eachLevel(0.15f))
       .addModule(ProtectionModule.builder().sources(DamageSourcePredicate.CAN_PROTECT, DamageSourcePredicate.tag(TinkerTags.DamageTypes.BLAST_PROTECTION)).eachLevel(2.5f));
     buildModifier(ModifierIds.magicProtection)
       .addModule(MaxArmorAttributeModule.builder(TinkerAttributes.BAD_EFFECT_DURATION, Operation.ADD_MULTIPLIED_BASE).heldTag(TinkerTags.Items.HELD).eachLevel(-0.05f))
@@ -1196,6 +1200,8 @@ public class ModifierProvider extends AbstractModifierProvider implements ICondi
 
     buildModifier(ModifierIds.scorchProtection)
       .addModule(EnchantmentModule.builder(enchantment(Enchantments.FIRE_PROTECTION)).protection())
+      // the enchantment only applies its burn time to armor slots, so shields need it as an attribute
+      .addModule(AttributeModule.builder(Attributes.BURNING_TIME.value(), Operation.ADD_MULTIPLIED_BASE).slots(EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND).eachLevel(-0.15f))
       .addModule(ProtectionModule.builder().sources(DamageSourcePredicate.CAN_PROTECT, SourceAttackerPredicate.causing(LivingEntityPredicate.FIRE_IMMUNE)).eachLevel(1.25f));
     buildModifier(ModifierIds.necrotic).addModule(LifestealModule.builder().eachLevel(0.05f));
     buildModifier(ModifierIds.restore).levelDisplay(ModifierLevelDisplay.SINGLE_LEVEL)
