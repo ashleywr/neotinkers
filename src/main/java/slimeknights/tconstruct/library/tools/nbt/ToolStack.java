@@ -24,6 +24,7 @@ import slimeknights.tconstruct.library.modifiers.ModifierHooks;
 import slimeknights.tconstruct.library.modifiers.ModifierId;
 import slimeknights.tconstruct.library.modifiers.ModifierManager;
 import slimeknights.tconstruct.library.modifiers.hook.build.ModifierTraitHook.TraitBuilder;
+import slimeknights.tconstruct.library.modifiers.modules.build.RarityModule;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.context.ToolRebuildContext;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
@@ -333,6 +334,7 @@ public class ToolStack implements IToolStackView {
     ItemStack stack = new ItemStack(item, size);
     // store the tool data onto the component to avoid going through verifyTagAfterLoad and rebuilding stats again
     ToolDataComponents.setTag(stack, nbt);
+    RarityModule.applyRarity(stack, getVolatileData());
     // damage value is already enforced via the stack creation above
     return stack;
   }
@@ -369,6 +371,7 @@ public class ToolStack implements IToolStackView {
       tag.putInt(TAG_DAMAGE, 0);
     }
     ToolDataComponents.setTag(stack, tag);
+    RarityModule.applyRarity(stack, getVolatileData());
     return stack;
   }
 
@@ -753,6 +756,10 @@ public class ToolStack implements IToolStackView {
       tag().put(TAG_VOLATILE_MOD_DATA, data);
     }
     syncToStack();
+    // rarity is computed into volatile data, but displayed from a component
+    if (stack != null) {
+      RarityModule.applyRarity(stack, volatileModData);
+    }
   }
 
 

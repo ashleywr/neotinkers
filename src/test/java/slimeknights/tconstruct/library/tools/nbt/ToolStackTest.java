@@ -6,12 +6,14 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Tiers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.tconstruct.fixture.MaterialFixture;
 import slimeknights.tconstruct.fixture.ToolDefinitionFixture;
 import slimeknights.tconstruct.library.modifiers.ModifierFixture;
+import slimeknights.tconstruct.library.modifiers.modules.build.RarityModule;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
@@ -141,6 +143,27 @@ class ToolStackTest extends ToolItemTest {
     ItemStack stack = tool.updateStack(new ItemStack(Items.DIAMOND_PICKAXE));
     assertThat(ToolDataComponents.getTag(stack)).isEqualTo(tool.getNbt());
     assertThat(ToolDataComponents.getTag(stack)).isNotSameAs(tool.getNbt());
+  }
+
+  @Test
+  void createStack_appliesRarity() {
+    ToolStack tool = ToolStack.from(Items.DIAMOND_PICKAXE, ToolDefinition.EMPTY, new CompoundTag());
+    ToolDataNBT data = new ToolDataNBT();
+    RarityModule.setRarity(data, Rarity.EPIC);
+    tool.setVolatileModData(data);
+    assertThat(tool.createStack().getRarity()).isEqualTo(Rarity.EPIC);
+  }
+
+  @Test
+  void volatileData_updatesStackRarity() {
+    ToolStack tool = ToolStack.from(testItemStack);
+    ToolDataNBT data = new ToolDataNBT();
+    RarityModule.setRarity(data, Rarity.RARE);
+    tool.setVolatileModData(data);
+    assertThat(testItemStack.getRarity()).isEqualTo(Rarity.RARE);
+    // losing the rarity modifier returns to the item rarity
+    tool.setVolatileModData(new ToolDataNBT());
+    assertThat(testItemStack.getRarity()).isEqualTo(Rarity.COMMON);
   }
 
   @Test
