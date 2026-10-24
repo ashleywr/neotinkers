@@ -112,8 +112,7 @@ public class ModifiableArrowItem extends ArrowItem implements IModifiableDisplay
     // however, if a modifier wants to glow let them
     return ModifierUtil.checkVolatileFlag(stack, SHINY);
   }
-  // TODO(neoport): dynamic rarity (RarityModule.getRarity) now lives in the RARITY data component (getRarity override
-  //  removed in 1.21); applied at tool build time. Owned by the build pipeline.
+  // 1.21 removed getRarity, ToolStack copies RarityModule rarity onto the RARITY component when building the tool
 
 
   /* Indestructible items */
@@ -159,7 +158,7 @@ public class ModifiableArrowItem extends ArrowItem implements IModifiableDisplay
   public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
     TooltipUtil.addInformation(this, stack, context.level(), tooltip, SafeClientAccess.getTooltipKey(), flag);
   }
-  // TODO(neoport): getDefaultTooltipHideFlags removed in 1.21; tooltip visibility is now per-component (showInTooltip).
+  // 1.21 removed getDefaultTooltipHideFlags, ModifierClientEvents hides enchantment and attribute lines instead
 
   @Override
   public List<Component> getStatInformation(IToolStackView tool, @Nullable Player player, List<Component> tooltips, TooltipKey key, TooltipFlag tooltipFlag) {

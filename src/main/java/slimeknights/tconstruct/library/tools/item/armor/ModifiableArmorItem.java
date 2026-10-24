@@ -168,8 +168,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
     // however, if a modifier wants to glow let them
     return ModifierUtil.checkVolatileFlag(stack, SHINY);
   }
-  // TODO(neoport): dynamic rarity (RarityModule.getRarity) now lives in the RARITY data component; it must be applied
-  //  when the tool is built/updated rather than via a getRarity override (removed in 1.21). Owned by the build pipeline.
+  // 1.21 removed getRarity, ToolStack copies RarityModule rarity onto the RARITY component when building the tool
 
 
   /* Indestructible items */
@@ -368,8 +367,7 @@ public class ModifiableArmorItem extends ArmorItem implements IModifiableDisplay
     TooltipUtil.addAttributes(this, tool, player, tooltips, TooltipUtil.SHOW_ARMOR_ATTRIBUTES, getEquipmentSlot());
     return tooltips;
   }
-  // TODO(neoport): getDefaultTooltipHideFlags removed in 1.21; tooltip visibility is now per-component (showInTooltip).
-  //  Hiding vanilla modifier/attribute tooltip lines must move to the component layer when the tool is built.
+  // 1.21 removed getDefaultTooltipHideFlags, ModifierClientEvents hides enchantment and attribute lines instead
 
   /* Display items */
 

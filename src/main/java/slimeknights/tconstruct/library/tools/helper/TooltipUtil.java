@@ -78,8 +78,7 @@ public class TooltipUtil {
 
   // 1.21: the vanilla item hide-flags (ItemStack.TooltipPart) were replaced by per-component tooltip display data, so these
   // masks are no longer applied by vanilla. The bits are kept for API stability (consumers still receive an int).
-  // TODO(neoport): hiding enchantment/modifier tooltips now requires the DataComponents.TOOLTIP_DISPLAY/showInTooltip mechanism
-  // in the consuming item classes; these flags no longer suppress anything on their own.
+  // They depend on the key held while rendering, so ModifierClientEvents applies them through the tooltip events.
   /** Bit flag matching the legacy enchantments tooltip part */
   private static final int HIDE_ENCHANTMENTS = 1;
   /** Bit flag matching the legacy attribute modifiers tooltip part */
@@ -507,5 +506,15 @@ public class TooltipUtil {
       return MODIFIER_HIDE_FLAGS;
     }
     return DEFAULT_HIDE_FLAGS;
+  }
+
+  /** Checks if vanilla attribute lines should be hidden, as the current key shows tool stats in their place */
+  public static boolean hideAttributes(ToolDefinition definition) {
+    return (getModifierHideFlags(definition) & HIDE_MODIFIERS) != 0;
+  }
+
+  /** Checks if vanilla enchantment lines should be hidden, as modifiers already describe them */
+  public static boolean hideEnchantments(ToolDefinition definition) {
+    return (getModifierHideFlags(definition) & HIDE_ENCHANTMENTS) != 0;
   }
 }
