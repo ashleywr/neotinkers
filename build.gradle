@@ -37,7 +37,7 @@ repositories {
         content { includeGroup 'curse.maven' }
     }
     maven {
-        name = 'Modrinth (Crafting Tweaks, Balm, Jade)'
+        name = 'Modrinth (Crafting Tweaks, Balm, Jade, MmmMmmMmmMmm)'
         url = 'https://api.modrinth.com/maven'
         content { includeGroup 'maven.modrinth' }
     }
@@ -101,17 +101,10 @@ sourceSets.main.resources {
 // (their compileOnly deps below are commented out). Excluded so the core mod builds;
 // re-enable each source tree when its dependency is restored in `dependencies`.
 //  - jei: recipe viewer (mezz.jei)
-//  - jsonthings: dev.gigaherz.jsonthings
-//  - ImmersiveEngineeringPlugin: blusunrize.immersiveengineering
-//  - craftingtweaks: net.blay09.mods.craftingtweaks
 //  - DietPlugin: com.illusivesoulworks.diet
-//  - DummmmmmyPlugin: net.mehvahdjukaar.dummmmmmy
 sourceSets.main.java {
     // jei: ported to the 1.21.1 JEI 19.x API and re-enabled (deps below).
-    exclude 'slimeknights/tconstruct/plugin/jsonthings/**'
-    exclude 'slimeknights/tconstruct/plugin/ImmersiveEngineeringPlugin.java'
     exclude 'slimeknights/tconstruct/plugin/DietPlugin.java'
-    exclude 'slimeknights/tconstruct/plugin/DummmmmmyPlugin.java'
 }
 
 dependencies {
@@ -131,10 +124,12 @@ dependencies {
     runtimeOnly "maven.modrinth:balm:${balm_version}"
     // Jade has no plugin, it reads our capabilities; on the dev runtime to check tank and inventory tooltips
     runtimeOnly "maven.modrinth:jade:${jade_version}"
-    // JSON Things
-    // compileOnly "dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}"
-    // Immersive Engineering
-    // compileOnly "blusunrize.immersiveengineering:ImmersiveEngineering:${minecraft_version}-${ie_version}"
+    // JSON Things - fluid blocks, part casts and tool items for packs
+    compileOnly "dev.gigaherz.jsonthings:JsonThings-${minecraft_version}:${json_things_version}"
+    // Immersive Engineering - chemthrower fluid effects and shield disabling on illagers
+    compileOnly "blusunrize.immersiveengineering:ImmersiveEngineering:${minecraft_version}-${ie_version}"
+    // MmmMmmMmmMmm - shield disabling on target dummies
+    compileOnly "maven.modrinth:mmmmmmmmmmmm:${dummmmmmy_version}"
 
     // Unit tests
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
