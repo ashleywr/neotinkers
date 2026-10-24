@@ -1,14 +1,24 @@
 package slimeknights.tconstruct.library.tools.helper;
 
 import net.minecraft.world.damagesource.CombatRules;
+import net.minecraft.world.damagesource.DamageSource;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 /** Tests math functions that are part of armor util, does not bootstrap the game */
 public class ArmorUtilMathTest {
+  /** Source with no weapon, so vanilla skips the enchantment armor effectiveness hook and the entity is unused */
+  private static final DamageSource SOURCE = Mockito.mock(DamageSource.class);
+
+  /** Vanilla armor absorption, which gained entity and source parameters in 1.21 */
+  private static float vanillaAbsorb(float damage, float armor, float toughness) {
+    return CombatRules.getDamageAfterAbsorb(null, damage, SOURCE, armor, toughness);
+  }
+
   @Test
   void damageArmorAbsorb_inverse() {
     float deltaDamage = 1f;
@@ -20,11 +30,11 @@ public class ArmorUtilMathTest {
       for (float armor = 0; armor < 30; armor += deltaAttr) {
         // goes to max toughness
         for (float toughness = 0; toughness < 20; toughness += deltaAttr) {
-          float inverseSecond = ArmorUtil.getDamageBeforeArmorAbsorb(CombatRules.getDamageAfterAbsorb(damage, armor, toughness), armor, toughness);
+          float inverseSecond = ArmorUtil.getDamageBeforeArmorAbsorb(vanillaAbsorb(damage, armor, toughness), armor, toughness);
           assertThat(inverseSecond)
             .withFailMessage("Inverse f-1(f(x) failed at damage %.2f, armor %.2f, toughness %.2f - actual %.10f", damage, armor, toughness, inverseSecond)
             .isEqualTo(damage, tolerance);
-          float inverseFirst = CombatRules.getDamageAfterAbsorb(ArmorUtil.getDamageBeforeArmorAbsorb(damage, armor, toughness), armor, toughness);
+          float inverseFirst = vanillaAbsorb(ArmorUtil.getDamageBeforeArmorAbsorb(damage, armor, toughness), armor, toughness);
           assertThat(inverseFirst)
             .withFailMessage("Inverse f(f-1(x) failed at damage %.2f, armor %.2f, toughness %.2f - actual %.10f", damage, armor, toughness, inverseFirst)
             .isEqualTo(damage, tolerance);
@@ -87,7 +97,7 @@ public class ArmorUtilMathTest {
         // goes to max toughness
         for (float toughness = 0; toughness < 20; toughness += deltaAttr) {
           // A(x)
-          float vanillaDamage = CombatRules.getDamageAfterAbsorb(damage, armor, toughness);
+          float vanillaDamage = vanillaAbsorb(damage, armor, toughness);
           // goes 180% to 20% adjustment
           for (float modifier = -20; modifier < 20; modifier += deltaAttr) {
             // goal: M(A(x))
@@ -95,7 +105,7 @@ public class ArmorUtilMathTest {
             // data to return from the event: A-1(M(A(x))
             float eventReturn = ArmorUtil.getDamageForEvent(damage, armor, toughness, 0, modifier);
             // result after vanilla logic: A(A-1(M(A(x)))
-            float finalResult = CombatRules.getDamageAfterAbsorb(eventReturn, armor, toughness);
+            float finalResult = vanillaAbsorb(eventReturn, armor, toughness);
             assertThat(finalResult)
               .withFailMessage("Incorrect result for damage %.2f, armor %.2f, toughness %.2f, modifier %.2f - target %.3f, actual %.3f", damage, armor, toughness, modifier, target, finalResult)
               .isEqualTo(target, tolerance);
@@ -118,13 +128,13 @@ public class ArmorUtilMathTest {
         // goes to max toughness
         for (float toughness = 0; toughness < 20; toughness += deltaAttr) {
           // goal: A(x)
-          float target = CombatRules.getDamageAfterAbsorb(damage, armor, toughness);
+          float target = vanillaAbsorb(damage, armor, toughness);
           // goes 100% to 20% adjustment
           for (float vanillaModifier = 0; vanillaModifier < 20; vanillaModifier += deltaAttr) {
             // data to return from the event: A-1(V-1(A(x))
             float eventReturn = ArmorUtil.getDamageForEvent(damage, armor, toughness, vanillaModifier, 0);
             // result after vanilla logic: V(A(A-1(V-1(A(x)))) == V(V-1(A(x)) == A(x)
-            float finalResult = CombatRules.getDamageAfterMagicAbsorb(CombatRules.getDamageAfterAbsorb(eventReturn, armor, toughness), vanillaModifier);
+            float finalResult = CombatRules.getDamageAfterMagicAbsorb(vanillaAbsorb(eventReturn, armor, toughness), vanillaModifier);
             assertThat(finalResult)
               .withFailMessage("Incorrect result for damage %.2f, armor %.2f, toughness %.2f, vanilla modifier %.2f - target %.3f, actual %.3f", damage, armor, toughness, vanillaModifier, target, finalResult)
               .isEqualTo(target, tolerance);
@@ -147,7 +157,7 @@ public class ArmorUtilMathTest {
         // goes to max toughness
         for (float toughness = 0; toughness < 20; toughness += deltaAttr) {
           // A(x)
-          float vanillaDamage = CombatRules.getDamageAfterAbsorb(damage, armor, toughness);
+          float vanillaDamage = vanillaAbsorb(damage, armor, toughness);
           // goes 180% to 20% adjustment
           for (float finalModifier = -20; finalModifier < 20; finalModifier += deltaAttr) {
             // goal: M(A(x))
@@ -157,7 +167,7 @@ public class ArmorUtilMathTest {
               // data to return from the event: A-1(V-1(M(A(x)))
               float eventReturn = ArmorUtil.getDamageForEvent(damage, armor, toughness, vanillaModifier, finalModifier);
               // result after vanilla logic: V(A(A-1(V-1(M(A(x))))) == V(V-1(M(A(x))) == M(A(x))
-              float finalResult = CombatRules.getDamageAfterMagicAbsorb(CombatRules.getDamageAfterAbsorb(eventReturn, armor, toughness), vanillaModifier);
+              float finalResult = CombatRules.getDamageAfterMagicAbsorb(vanillaAbsorb(eventReturn, armor, toughness), vanillaModifier);
               assertThat(finalResult)
                 .withFailMessage("Incorrect result for damage %.2f, armor %.2f, toughness %.2f, vanilla modifier %.2f, final modifier %.2f - target %.3f, actual %.3f", damage, armor, toughness, vanillaModifier, finalModifier, target, finalResult)
                 .isEqualTo(target, tolerance);

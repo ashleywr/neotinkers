@@ -5,28 +5,24 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.common.ItemAbilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.util.JsonHelper;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.fixture.MaterialItemFixture;
-import slimeknights.tconstruct.fixture.RegistrationFixture;
 import slimeknights.tconstruct.library.json.LevelingValue;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierFixture;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
-import slimeknights.tconstruct.library.tools.definition.module.ToolModule;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.AreaOfEffectIterator;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.CircleAOEIterator;
-import slimeknights.tconstruct.library.tools.definition.module.build.MultiplyStatsModule;
 import slimeknights.tconstruct.library.tools.definition.module.build.SetStatsModule;
 import slimeknights.tconstruct.library.tools.definition.module.build.ToolActionToolHook;
 import slimeknights.tconstruct.library.tools.definition.module.build.ToolActionsModule;
 import slimeknights.tconstruct.library.tools.definition.module.build.ToolSlotsModule;
-import slimeknights.tconstruct.library.tools.definition.module.build.ToolTraitsModule;
 import slimeknights.tconstruct.library.tools.definition.module.build.VolatileDataToolHook;
 import slimeknights.tconstruct.library.tools.definition.module.material.PartStatsModule;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolPartsHook;
@@ -62,15 +58,6 @@ class ToolDefinitionLoaderTest extends BaseMcTest {
   @BeforeAll
   static void beforeAll() {
     MaterialItemFixture.init();
-    RegistrationFixture.register(ToolModule.LOADER, "base_stats", SetStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "multiply_stats", MultiplyStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "part_stats", PartStatsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "modifier_slots", ToolSlotsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "traits", ToolTraitsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "actions", ToolActionsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "is_effective", IsEffectiveModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "circle", CircleAOEIterator.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "sweep", SweepWeaponAttack.LOADER);
   }
 
   /** Helper to do all the stats checks */
@@ -114,8 +101,8 @@ class ToolDefinitionLoaderTest extends BaseMcTest {
     assertThat(actions).isInstanceOf(ToolActionsModule.class);
     assertThat(((ToolActionsModule) actions).actions()).hasSize(2);
     IToolStackView tool = mock(IToolStackView.class);
-    assertThat(data.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ToolActions.AXE_DIG)).isTrue();
-    assertThat(data.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ToolAction.get("custom_action"))).isTrue();
+    assertThat(data.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ItemAbilities.AXE_DIG)).isTrue();
+    assertThat(data.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ItemAbility.get("custom_action"))).isTrue();
     // harvest
     IsEffectiveToolHook harvestLogic = data.getHook(ToolHooks.IS_EFFECTIVE);
     assertThat(harvestLogic).isInstanceOf(IsEffectiveModule.class);

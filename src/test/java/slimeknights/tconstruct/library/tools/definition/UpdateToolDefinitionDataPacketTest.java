@@ -5,18 +5,16 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ItemAbilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import slimeknights.mantle.data.predicate.block.BlockPredicate;
 import slimeknights.tconstruct.fixture.MaterialItemFixture;
-import slimeknights.tconstruct.fixture.RegistrationFixture;
 import slimeknights.tconstruct.library.json.LevelingValue;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
 import slimeknights.tconstruct.library.modifiers.ModifierFixture;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.definition.module.ToolHooks;
-import slimeknights.tconstruct.library.tools.definition.module.ToolModule;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.AreaOfEffectIterator;
 import slimeknights.tconstruct.library.tools.definition.module.aoe.CircleAOEIterator;
 import slimeknights.tconstruct.library.tools.definition.module.build.MultiplyStatsModule;
@@ -48,19 +46,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class UpdateToolDefinitionDataPacketTest extends BaseMcTest {
-  private static final ResourceLocation EMPTY_ID = new ResourceLocation("test", "empty");
-  private static final ResourceLocation FILLED_ID = new ResourceLocation("test", "filled");
+  private static final ResourceLocation EMPTY_ID = ResourceLocation.fromNamespaceAndPath("test", "empty");
+  private static final ResourceLocation FILLED_ID = ResourceLocation.fromNamespaceAndPath("test", "filled");
 
   @BeforeAll
   static void initialize() {
     MaterialItemFixture.init();
     ModifierFixture.init();
-    RegistrationFixture.register(ToolModule.LOADER, "slots", ToolSlotsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "is_effective", IsEffectiveModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "circle", CircleAOEIterator.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "sweep", SweepWeaponAttack.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "traits", ToolTraitsModule.LOADER);
-    RegistrationFixture.register(ToolModule.LOADER, "actions", ToolActionsModule.LOADER);
   }
 
   @Test
@@ -83,7 +75,7 @@ class UpdateToolDefinitionDataPacketTest extends BaseMcTest {
       .module(ToolSlotsModule.builder().slots(SlotType.UPGRADE, 5).slots(SlotType.ABILITY, 8).build())
       // traits
       .module(ToolTraitsModule.builder().trait(ModifierFixture.TEST_1, 10).build())
-      .module(ToolActionsModule.of(ToolActions.AXE_DIG, ToolActions.SHOVEL_FLATTEN))
+      .module(ToolActionsModule.of(ItemAbilities.AXE_DIG, ItemAbilities.SHOVEL_FLATTEN))
       // behavior
       .module(new IsEffectiveModule(BlockPredicate.set(Blocks.GRANITE), true))
       .module(new CircleAOEIterator(7, true))
@@ -166,8 +158,8 @@ class UpdateToolDefinitionDataPacketTest extends BaseMcTest {
     assertThat(actionModule).isInstanceOf(ToolActionsModule.class);
     assertThat(((ToolActionsModule) actionModule).actions()).hasSize(2);
     IToolStackView tool = mock(IToolStackView.class);
-    assertThat(parsed.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ToolActions.AXE_DIG)).isTrue();
-    assertThat(parsed.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ToolActions.SHOVEL_FLATTEN)).isTrue();
+    assertThat(parsed.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ItemAbilities.AXE_DIG)).isTrue();
+    assertThat(parsed.getHook(ToolHooks.TOOL_ACTION).canPerformAction(tool, ItemAbilities.SHOVEL_FLATTEN)).isTrue();
 
     // harvest
     IsEffectiveToolHook harvestLogic = parsed.getHook(ToolHooks.IS_EFFECTIVE);
