@@ -42,13 +42,12 @@ public record ReduceEffectOnUnequipModule(MobEffectCategory category, LevelingVa
   public void onUnequip(IToolStackView tool, ModifierEntry modifier, EquipmentChangeContext context) {
     // must actually be removing, and run on both sides so we don't need to sync
     if (condition.matches(tool, modifier) && EquipmentChangeModifierHook.didUnequip(tool, context)) {
-      LivingEntity entity = context.getEntity(); // TODO(neoport): context.getEntity() cascade from EquipmentContext port
+      LivingEntity entity = context.getEntity();
       float percent = this.percent.compute(modifier);
       if (percent != 0) {
         // iterate all matching effects, updating the duration
         for (MobEffectInstance instance : entity.getActiveEffects()) {
-          // getCurativeItems() removed in 1.21; all non-infinite effects are considered reducible
-          if (!instance.isInfiniteDuration() && instance.getEffect().value().getCategory() == this.category) {
+          if (!instance.isInfiniteDuration() && instance.getEffect().value().getCategory() == this.category && !instance.getCures().isEmpty()) {
             instance.duration = Math.max(1, (int) (instance.duration * (1 - percent)));
           }
         }
