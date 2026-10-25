@@ -163,11 +163,11 @@ public class JEIPlugin implements IModPlugin {
     // melting and casting
     registry.addRecipeCategories(new MeltingCategory(guiHelper));
     registry.addRecipeCategories(new AlloyRecipeCategory(guiHelper));
-    registry.addRecipeCategories(new EntityMeltingRecipeCategory(guiHelper));
+    registry.addRecipeCategories(new EntityMeltingRecipeCategory(guiHelper, registry.getJeiHelpers().getIngredientManager()));
     registry.addRecipeCategories(new FoundryCategory(guiHelper));
     // tinker station
     registry.addRecipeCategories(new ModifierRecipeCategory(guiHelper));
-    registry.addRecipeCategories(new SeveringCategory(guiHelper));
+    registry.addRecipeCategories(new SeveringCategory(guiHelper, registry.getJeiHelpers().getIngredientManager()));
     registry.addRecipeCategories(new ToolBuildingCategory(guiHelper));
     // part builder
     registry.addRecipeCategories(new PartBuilderCategory(guiHelper));

@@ -10,6 +10,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.runtime.IIngredientManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.plugin.jei.MantleJEIConstants;
@@ -31,7 +32,9 @@ public class SeveringCategory implements IRecipeCategory<SeveringRecipe> {
   private final IDrawable background;
   @Getter
   private final IDrawable icon;
-  public SeveringCategory(IGuiHelper helper) {
+  private final IIngredientManager ingredientManager;
+  public SeveringCategory(IGuiHelper helper, IIngredientManager ingredientManager) {
+    this.ingredientManager = ingredientManager;
     this.background = helper.createDrawable(BACKGROUND_LOC, 0, 78, 100, 38);
     this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, TinkerTools.cleaver.get().getRenderTool());
   }
@@ -52,7 +55,8 @@ public class SeveringCategory implements IRecipeCategory<SeveringRecipe> {
     IIngredientAcceptor<?> entities = builder.addSlot(RecipeIngredientRole.INPUT, 3, 3)
            .setCustomRenderer(MantleJEIConstants.ENTITY_TYPE, entityRenderer)
            .addIngredients(MantleJEIConstants.ENTITY_TYPE, input.getDisplay());
-    IIngredientAcceptor<?> eggs = builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).addItemStacks(input.getEggs());
+    IIngredientAcceptor<?> eggs = builder.addInvisibleIngredients(RecipeIngredientRole.INPUT)
+                                        .addOptionalTypedIngredients(EntityIngredientSlots.spawnEggs(input.getEggs(), ingredientManager));
     builder.createFocusLink(entities, eggs);
 
     // output

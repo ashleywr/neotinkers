@@ -13,6 +13,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.runtime.IIngredientManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -52,8 +53,10 @@ public class EntityMeltingRecipeCategory implements IRecipeCategory<EntityMeltin
   private final IDrawable icon;
   private final IDrawable arrow;
   private final IDrawable tank;
+  private final IIngredientManager ingredientManager;
 
-  public EntityMeltingRecipeCategory(IGuiHelper helper) {
+  public EntityMeltingRecipeCategory(IGuiHelper helper, IIngredientManager ingredientManager) {
+    this.ingredientManager = ingredientManager;
     this.background = helper.createDrawable(BACKGROUND_LOC, 0, 41, 150, 62);
     this.icon = helper.createDrawable(BACKGROUND_LOC, 174, 41, 16, 16);
     this.arrow = helper.drawableBuilder(BACKGROUND_LOC, 150, 41, 24, 17).buildAnimated(200, StartDirection.LEFT, false);
@@ -89,7 +92,8 @@ public class EntityMeltingRecipeCategory implements IRecipeCategory<EntityMeltin
                                              .setCustomRenderer(MantleJEIConstants.ENTITY_TYPE, entityRenderer)
                                              .addIngredients(MantleJEIConstants.ENTITY_TYPE, input.getDisplay());
     // add spawn eggs as hidden inputs
-    IIngredientAcceptor<?> eggs = builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).addItemStacks(input.getEggs());
+    IIngredientAcceptor<?> eggs = builder.addInvisibleIngredients(RecipeIngredientRole.INPUT)
+                                        .addOptionalTypedIngredients(EntityIngredientSlots.spawnEggs(input.getEggs(), ingredientManager));
     builder.createFocusLink(entities, eggs);
 
     // output
